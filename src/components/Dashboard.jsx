@@ -58,7 +58,7 @@ export default function Dashboard({ profile, progress, onSelectLesson, onRetakeA
       </div>
 
       {/* Tabs to select level */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '16px' }}>
+      <div className="dashboard-tabs">
         {['beginner', 'intermediate', 'advanced'].map((lvl) => {
           const isActive = activeTab === lvl;
           const completedCount = getCompletedCount(lvl);
@@ -68,26 +68,14 @@ export default function Dashboard({ profile, progress, onSelectLesson, onRetakeA
             <button
               key={lvl}
               onClick={() => setActiveTab(lvl)}
-              style={{
-                flex: 1,
-                padding: '12px 4px',
-                background: 'none',
-                border: 'none',
-                borderBottom: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                color: isActive ? '#fff' : 'var(--text-muted)',
-                fontWeight: isActive ? '700' : '500',
-                fontSize: '13px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontFamily: 'inherit'
-              }}
+              className={`tab-btn ${isActive ? 'active' : ''}`}
             >
               <div>
                 {lvl === 'beginner' && 'बुनियादी'}
                 {lvl === 'intermediate' && 'मध्यम'}
                 {lvl === 'advanced' && 'उच्च'}
               </div>
-              <div style={{ fontSize: '10px', opacity: 0.7, marginTop: '2px' }}>
+              <div className="tab-btn-sub">
                 ({completedCount}/{totalCount} Done)
               </div>
             </button>

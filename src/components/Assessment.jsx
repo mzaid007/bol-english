@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ASSESSMENT_QUESTIONS } from '../data/curriculum';
 import { speakEnglish, getSpeechRecognition, evaluatePronunciation } from '../services/speech';
 
@@ -20,6 +20,17 @@ export default function Assessment({ onComplete }) {
   const [spokenText, setSpokenText] = useState("");
 
   const currentQuestion = ASSESSMENT_QUESTIONS[currentIndex];
+  const recognitionRef = useRef(null);
+
+  // Clean up speech recognition on question change or unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
+      }
+    };
+  }, [currentIndex]);
 
   useEffect(() => {
     // Check if speech recognition is supported
@@ -88,7 +99,13 @@ export default function Assessment({ onComplete }) {
 
   // Speech Pronunciation Recognition handler
   const handleStartSpeech = () => {
-    if (isListeningSpeech) return;
+    if (isListeningSpeech) {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+      setIsListeningSpeech(false);
+      return;
+    }
     
     const recognition = getSpeechRecognition();
     if (!recognition) {
@@ -96,6 +113,7 @@ export default function Assessment({ onComplete }) {
       return;
     }
 
+    recognitionRef.current = recognition;
     setIsListeningSpeech(true);
     setSpokenText("");
     setSpeechResult(null);
@@ -120,9 +138,11 @@ export default function Assessment({ onComplete }) {
     };
 
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
+      if (event.error !== 'aborted') {
+        console.error("Speech recognition error:", event.error);
+        alert("आवाज रिकॉर्ड करने में त्रुटि हुई। कृपया दोबारा प्रयास करें या माइक अनुमति की जाँच करें।");
+      }
       setIsListeningSpeech(false);
-      alert("आवाज रिकॉर्ड करने में त्रुटि हुई। कृपया दोबारा प्रयास करें या माइक अनुमति की जाँच करें।");
     };
 
     recognition.onend = () => {
@@ -325,7 +345,7 @@ export default function Assessment({ onComplete }) {
                 <button
                   className={`mic-btn ${isListeningSpeech ? 'listening' : ''}`}
                   onClick={handleStartSpeech}
-                  disabled={isAnswered || isListeningSpeech}
+                  disabled={isAnswered}
                   aria-label="Record speech"
                 >
                   🎤

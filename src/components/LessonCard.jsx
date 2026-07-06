@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { speakEnglish, getSpeechRecognition, evaluatePronunciation } from '../services/speech';
 
 export default function LessonCard({ lesson, onComplete, onBack }) {
@@ -21,12 +21,25 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
   const [spokenText, setSpokenText] = useState("");
   const [speechRecognitionSupported, setSpeechRecognitionSupported] = useState(true);
 
+  const recognitionRef = useRef(null);
+
   useEffect(() => {
     const recognition = getSpeechRecognition();
     if (!recognition) {
       setSpeechRecognitionSupported(false);
     }
   }, []);
+
+  // Cleanup speech recognition on card, quiz, or phase transitions
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
+      }
+      setIsListeningSpeech(false);
+    };
+  }, [cardIndex, quizIndex, phase]);
 
   // Play card audio when navigating to a card
   useEffect(() => {
@@ -65,11 +78,18 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
 
   // Card Speech recognition
   const handleStartCardSpeech = (targetText) => {
-    if (isListeningSpeech) return;
+    if (isListeningSpeech) {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+      setIsListeningSpeech(false);
+      return;
+    }
     
     const recognition = getSpeechRecognition();
     if (!recognition) return;
 
+    recognitionRef.current = recognition;
     setIsListeningSpeech(true);
     setSpokenText("");
     setSpeechResult(null);
@@ -85,7 +105,10 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
       setIsListeningSpeech(false);
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
+      if (event.error !== 'aborted') {
+        console.error("Speech recognition error:", event.error);
+      }
       setIsListeningSpeech(false);
     };
 
@@ -125,11 +148,18 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
 
   // Quiz Speech recognition
   const handleStartQuizSpeech = (targetText) => {
-    if (isListeningSpeech) return;
+    if (isListeningSpeech) {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+      setIsListeningSpeech(false);
+      return;
+    }
     
     const recognition = getSpeechRecognition();
     if (!recognition) return;
 
+    recognitionRef.current = recognition;
     setIsListeningSpeech(true);
     setSpokenText("");
     setSpeechResult(null);
@@ -149,7 +179,10 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
       setIsListeningSpeech(false);
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
+      if (event.error !== 'aborted') {
+        console.error("Speech recognition error:", event.error);
+      }
       setIsListeningSpeech(false);
     };
 
@@ -419,7 +452,7 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
                   <button
                     className={`mic-btn ${isListeningSpeech ? 'listening' : ''}`}
                     onClick={() => handleStartQuizSpeech(quiz.speechText)}
-                    disabled={isAnswered || isListeningSpeech}
+                    disabled={isAnswered}
                     aria-label="Record pronunciation"
                   >
                     🎤
@@ -456,9 +489,13 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
                 <button
                   className="btn btn-secondary"
                   onClick={() => {
-                    setIsCorrect(true); // Treat skip as completed to let user proceed
+                    setIsCorrect(false); // Do not mark skipped questions as correct
                     setIsAnswered(true);
-                    setSpokenText("Skipped");
+                    setSpokenText("Skipped / छोड़ दिया");
+                    setSpeechResult({
+                      score: 0,
+                      words: quiz.speechText.split(" ").map(w => ({ word: w, isCorrect: false }))
+                    });
                   }}
                   style={{ marginTop: '8px' }}
                 >

@@ -321,13 +321,16 @@ export default function App() {
           {/* Avatar selector */}
           <div className="form-group">
             <label className="form-label">अवतार चुनें (Select Avatar)</label>
-            <div className="avatar-selector">
+            <div className="avatar-selector" role="radiogroup" aria-label="अवतार चुनें (Select Avatar)">
               {AVATAR_OPTIONS.map((emoji) => (
                 <button
                   type="button"
                   key={emoji}
                   className={`avatar-option ${tempAvatar === emoji ? 'selected' : ''}`}
                   onClick={() => setTempAvatar(emoji)}
+                  role="radio"
+                  aria-checked={tempAvatar === emoji}
+                  aria-label={`Avatar option ${emoji}`}
                 >
                   {emoji}
                 </button>
@@ -338,14 +341,23 @@ export default function App() {
           {/* Goal Selector */}
           <div className="form-group">
             <label className="form-label">आपका लक्ष्य (Learning Goal)</label>
-            <div className="selector-list">
+            <div className="selector-list" role="radiogroup" aria-label="सीखने का लक्ष्य (Learning Goal)">
               {GOAL_OPTIONS.map((goal) => (
                 <div
                   key={goal.id}
                   className={`selector-item ${tempGoal === goal.id ? 'selected' : ''}`}
                   onClick={() => setTempGoal(goal.id)}
+                  role="radio"
+                  aria-checked={tempGoal === goal.id}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setTempGoal(goal.id);
+                    }
+                  }}
                 >
-                  <div className="selector-icon">{goal.icon}</div>
+                  <div className="selector-icon" aria-hidden="true">{goal.icon}</div>
                   <div className="selector-details">
                     <span className="selector-title">{goal.title}</span>
                     <span className="selector-sub">{goal.sub}</span>
