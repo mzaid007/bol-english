@@ -277,7 +277,7 @@ export default function App() {
             <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
               <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-primary)' }}>वापस आने वाले उपयोगकर्ता (Returning Users)</p>
               <p className="hindi-text" style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px', lineHeight: '1.4' }}>
-                क्लाउड से अपनी प्रगति (प्रोग्रेस) लोड करने के लिए नीचे अपना ईमेल दर्ज करें।
+                क्या आपने पहले BolEnglish का उपयोग किया है? अपना वही ईमेल दर्ज करें जिसे आपने पहले उपयोग किया था। हम आपकी पिछली प्रगति, अर्जित अंक (XP), और सीखे गए पाठों को तुरंत लोड कर देंगे।
               </p>
               
               <form onSubmit={handleEmailLoginSubmit} style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '6px' }}>
@@ -294,8 +294,8 @@ export default function App() {
                   सिंक करें (Connect)
                 </button>
               </form>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                Enter your email to sync and restore your progress from the cloud.
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                Have you used BolEnglish before? Enter the same email you used previously. We will instantly load your saved progress, XP, and completed lessons.
               </p>
             </div>
           )}
@@ -480,11 +480,11 @@ export default function App() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.25)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
           <div className="card" style={{ width: '100%', maxWidth: '380px', textAlign: 'left' }}>
             <h3 style={{ marginBottom: '8px' }}>प्रगति सिंक करें (Cloud Sync)</h3>
-            <p className="hindi-text" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px', lineHeight: '1.4' }}>
-              क्लाउड में अपनी प्रगति सुरक्षित करने या किसी अन्य डिवाइस से अपना डेटा लोड करने के लिए अपना ईमेल दर्ज करें।
+            <p className="hindi-text" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px', lineHeight: '1.4' }}>
+              अपनी प्रगति को सुरक्षित रखें! यहाँ अपना ईमेल दर्ज करने से आपका सारा डेटा क्लाउड में सेव हो जाएगा। इससे आपकी प्रोग्रेस कभी डिलीट नहीं होगी और आप किसी भी फोन या कंप्यूटर पर अपनी पढ़ाई जारी रख सकेंगे।
             </p>
             <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '16px', fontStyle: 'italic', lineHeight: '1.4' }}>
-              Enter your email to save your learning history in the cloud or restore progress from another device.
+              Secure your progress! Entering your email here backs up your learning history to the cloud. Your progress will never be lost, and you can continue learning on any phone or computer.
             </p>
             
             <form onSubmit={handleEmailLoginSubmit}>
