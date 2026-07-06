@@ -43,13 +43,9 @@ export default function App() {
   const [tempGoal, setTempGoal] = useState('');
   const [tempAvatar, setTempAvatar] = useState('🧑‍🎓');
   
-  // Custom developer testing state
-  const [showSimulatedLogin, setShowSimulatedLogin] = useState(false);
-  const [simulatedEmail, setSimulatedEmail] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
-
-  // Google client ID loaded from environment variables
-  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
   // Load profile and progress on mount
   useEffect(() => {
@@ -70,56 +66,7 @@ export default function App() {
     }
   }, []);
 
-  // Set up Google Sign-In SDK (with polling fallback to handle async script loading)
-  useEffect(() => {
-    let intervalId;
 
-    const initGoogleSignIn = () => {
-      if (GOOGLE_CLIENT_ID && window.google) {
-        /* global google */
-        google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleCredentialResponse
-        });
-
-        // Render button in container if it exists
-        const btnContainer = document.getElementById("google-signin-btn");
-        if (btnContainer) {
-          google.accounts.id.renderButton(btnContainer, {
-            theme: "dark",
-            size: "large",
-            width: "100%",
-            text: "signin_with"
-          });
-        }
-
-        // Render button in modal if it exists
-        const btnModalContainer = document.getElementById("google-signin-btn-modal");
-        if (btnModalContainer) {
-          google.accounts.id.renderButton(btnModalContainer, {
-            theme: "dark",
-            size: "large",
-            width: "100%",
-            text: "signin_with"
-          });
-        }
-
-        if (intervalId) clearInterval(intervalId);
-      }
-    };
-
-    // Attempt to initialize immediately
-    initGoogleSignIn();
-
-    // If SDK is not ready yet, poll for window.google
-    if (GOOGLE_CLIENT_ID && !window.google) {
-      intervalId = setInterval(initGoogleSignIn, 150);
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [screen, GOOGLE_CLIENT_ID, showSimulatedLogin]);
 
   // Reactive Sync: Auto-syncs to MongoDB when progress updates and user is logged in
   useEffect(() => {
@@ -145,38 +92,13 @@ export default function App() {
     StorageService.saveProgress(newProgress);
   };
 
-  // Google Login Token Handler
-  const handleGoogleCredentialResponse = async (response) => {
-    try {
-      // Decode JWT token locally (JWT payload is base64-url encoded JSON)
-      const token = response.credential;
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      
-      const payload = JSON.parse(jsonPayload);
-      const email = payload.email;
-      const name = payload.name;
-      const picture = payload.picture;
-
-      await processUserLogin(email, name, picture);
-    } catch (e) {
-      console.error("Failed to parse Google credentials:", e);
-      alert("गूगल लॉगिन विफल रहा।");
-    }
-  };
-
-  // Simulated Login for quick MongoDB testing without Client ID
-  const handleSimulatedLoginSubmit = async (e) => {
+  // Simple Email Login Handler (Option A - Passwordless Email Sync)
+  const handleEmailLoginSubmit = async (e) => {
     e.preventDefault();
-    if (!simulatedEmail.trim()) return;
-    await processUserLogin(simulatedEmail.trim(), tempName || profile.name || "Test User", "");
-    setShowSimulatedLogin(false);
+    if (!emailInput.trim()) return;
+    await processUserLogin(emailInput.trim(), tempName || profile.name || "User", "");
+    setEmailInput('');
+    setShowLoginModal(false);
   };
 
   // Core Login Processing & Cloud Fetch
@@ -189,7 +111,8 @@ export default function App() {
       ...profile,
       email: email,
       avatarUrl: picture,
-      name: name || profile.name || tempName
+      name: name || profile.name || tempName,
+      onboarded: true // User is now considered onboarded on successful sign in
     };
 
     let updatedProgress = { ...progress };
@@ -335,20 +258,46 @@ export default function App() {
 
         {/* Social Authentication Block */}
         <div style={{ marginBottom: '16px', textAlign: 'center', width: '100%', animation: 'slideUp 0.3s ease-out' }}>
-          <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-primary)' }}>वापस आने वाले उपयोगकर्ता (Returning Users)</p>
-          <p className="hindi-text" style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '2px', lineHeight: '1.4' }}>
-            यदि आपने पहले इस ऐप का उपयोग किया है, तो क्लाउड से अपनी प्रगति (प्रोग्रेस) लोड करने के लिए नीचे लॉगिन करें।
-          </p>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px', fontStyle: 'italic', lineHeight: '1.4' }}>
-            If you have used this app before, sign in below to restore your learning progress from the cloud.
-          </p>
-          
-          {GOOGLE_CLIENT_ID ? (
-            <div id="google-signin-btn" style={{ minHeight: '44px' }}></div>
+          {profile.email ? (
+            <div className="card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '14px', fontWeight: '600' }}>✅ लॉग इन हैं (Signed In)</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                ईमेल: <strong>{profile.email}</strong>
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleLogout}
+                style={{ marginTop: '8px', padding: '6px 16px', fontSize: '12px', width: 'auto' }}
+              >
+                लॉगआउट (Sign Out)
+              </button>
+            </div>
           ) : (
-            <button className="btn btn-secondary" onClick={() => setShowSimulatedLogin(true)}>
-              🔗 ईमेल से डेटा रीस्टोर करें (Atlas Sync)
-            </button>
+            <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
+              <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-primary)' }}>वापस आने वाले उपयोगकर्ता (Returning Users)</p>
+              <p className="hindi-text" style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px', lineHeight: '1.4' }}>
+                क्लाउड से अपनी प्रगति (प्रोग्रेस) लोड करने के लिए नीचे अपना ईमेल दर्ज करें।
+              </p>
+              
+              <form onSubmit={handleEmailLoginSubmit} style={{ display: 'flex', gap: '8px', width: '100%', marginBottom: '6px' }}>
+                <input
+                  type="email"
+                  className="form-input"
+                  placeholder="name@example.com"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  required
+                  style={{ margin: 0, flexGrow: 1 }}
+                />
+                <button type="submit" className="btn btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap', padding: '0 20px' }}>
+                  सिंक करें (Connect)
+                </button>
+              </form>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                Enter your email to sync and restore your progress from the cloud.
+              </p>
+            </div>
           )}
         </div>
 
@@ -427,44 +376,6 @@ export default function App() {
           </button>
         </form>
 
-        {/* Simulated Login Modal/Overlay */}
-        {showSimulatedLogin && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.25)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-            <div className="card" style={{ width: '100%', maxWidth: '380px', textAlign: 'left' }}>
-              <h3 style={{ marginBottom: '8px' }}>प्रगति सिंक करें (Cloud Sync)</h3>
-              <p className="hindi-text" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px', lineHeight: '1.4' }}>
-                क्लाउड में अपनी प्रगति सुरक्षित करने या किसी अन्य डिवाइस से अपना डेटा लोड करने के लिए लॉगिन करें।
-              </p>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '16px', fontStyle: 'italic', lineHeight: '1.4' }}>
-                Sign in to save your learning history in the cloud or restore progress from another device.
-              </p>
-              
-              <form onSubmit={handleSimulatedLoginSubmit}>
-                {GOOGLE_CLIENT_ID ? (
-                  <div style={{ marginBottom: '16px' }}>
-                    <div id="google-signin-btn-modal" style={{ minHeight: '44px' }}></div>
-                  </div>
-                ) : (
-                  <div className="form-group">
-                    <input
-                      type="email"
-                      className="form-input"
-                      placeholder="user@example.com"
-                      value={simulatedEmail}
-                      onChange={(e) => setSimulatedEmail(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowSimulatedLogin(false)}>बंद करें (Close)</button>
-                  {!GOOGLE_CLIENT_ID && <button type="submit" className="btn btn-primary">कनेक्ट करें (Connect)</button>}
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     );
   };
@@ -521,7 +432,7 @@ export default function App() {
             }}>
               <span>⚠️ <strong>प्रगति सुरक्षित करें:</strong> क्लाउड सिंक सक्षम करने के लिए साइन-इन करें। (Save progress to cloud)</span>
               <button 
-                onClick={() => setShowSimulatedLogin(true)} 
+                onClick={() => setShowLoginModal(true)} 
                 style={{ 
                   background: 'var(--primary-gradient)', 
                   border: 'none', 
@@ -562,6 +473,39 @@ export default function App() {
           onComplete={handleLessonComplete}
           onBack={() => setScreen('dashboard')}
         />
+      )}
+
+      {/* Global Email Sync Modal Overlay */}
+      {showLoginModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.25)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '380px', textAlign: 'left' }}>
+            <h3 style={{ marginBottom: '8px' }}>प्रगति सिंक करें (Cloud Sync)</h3>
+            <p className="hindi-text" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px', lineHeight: '1.4' }}>
+              क्लाउड में अपनी प्रगति सुरक्षित करने या किसी अन्य डिवाइस से अपना डेटा लोड करने के लिए अपना ईमेल दर्ज करें।
+            </p>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '16px', fontStyle: 'italic', lineHeight: '1.4' }}>
+              Enter your email to save your learning history in the cloud or restore progress from another device.
+            </p>
+            
+            <form onSubmit={handleEmailLoginSubmit}>
+              <div className="form-group">
+                <input
+                  type="email"
+                  className="form-input"
+                  placeholder="user@example.com"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowLoginModal(false)}>बंद करें (Close)</button>
+                <button type="submit" className="btn btn-primary">कनेक्ट करें (Connect)</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </>
   );
