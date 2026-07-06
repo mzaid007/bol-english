@@ -304,7 +304,27 @@ export default function App() {
           <div className="onboard-logo-sub">हिन्दी से अंग्रेजी सीखें, बिल्कुल मुफ्त!</div>
         </div>
 
-        <form onSubmit={handleStartOnboarding} className="screen" style={{ animation: 'slideUp 0.3s ease-out' }}>
+        {/* Social Authentication Block */}
+        <div style={{ marginBottom: '16px', textAlign: 'center', width: '100%', animation: 'slideUp 0.3s ease-out' }}>
+          <p style={{ fontSize: '12px', marginBottom: '12px', color: 'var(--text-secondary)' }}>वापस आने वाले उपयोगकर्ता (Returning Users):</p>
+          
+          {GOOGLE_CLIENT_ID ? (
+            <div id="google-signin-btn" style={{ minHeight: '44px' }}></div>
+          ) : (
+            <button className="btn btn-secondary" onClick={() => setShowSimulatedLogin(true)}>
+              🔗 ईमेल से डेटा रीस्टोर करें (Atlas Sync)
+            </button>
+          )}
+        </div>
+
+        {/* OR Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%', margin: '8px 0 20px 0', color: 'var(--text-muted)', fontSize: '11px', fontWeight: '500', animation: 'slideUp 0.3s ease-out' }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
+          <span style={{ padding: '0 12px' }}>या (OR) नया प्रोफाइल बनाएं</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
+        </div>
+
+        <form onSubmit={handleStartOnboarding} className="screen" style={{ animation: 'slideUp 0.3s ease-out', width: '100%' }}>
           {/* Name input */}
           <div className="form-group">
             <label className="form-label">आपका नाम (Your Name)</label>
@@ -371,19 +391,6 @@ export default function App() {
             आगे बढ़ें (Let's Go) →
           </button>
         </form>
-
-        {/* Social Authentication Block */}
-        <div style={{ marginTop: '20px', borderTop: '1px solid var(--border-color)', paddingTop: '20px', textAlign: 'center' }}>
-          <p style={{ fontSize: '12px', marginBottom: '12px' }}>वापस आने वाले उपयोगकर्ता (Returning Users):</p>
-          
-          {GOOGLE_CLIENT_ID ? (
-            <div id="google-signin-btn" style={{ minHeight: '44px' }}></div>
-          ) : (
-            <button className="btn btn-secondary" onClick={() => setShowSimulatedLogin(true)}>
-              🔗 ईमेल से डेटा रीस्टोर करें (Atlas Sync)
-            </button>
-          )}
-        </div>
 
         {/* Simulated Login Modal/Overlay */}
         {showSimulatedLogin && (
