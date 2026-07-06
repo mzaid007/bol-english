@@ -387,7 +387,7 @@ export default function App() {
 
         {/* Simulated Login Modal/Overlay */}
         {showSimulatedLogin && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.25)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
             <div className="card" style={{ width: '100%', maxWidth: '380px', textAlign: 'left' }}>
               <h3 style={{ marginBottom: '8px' }}>डेटाबेस सिंक टेस्ट (Atlas Test)</h3>
               <p style={{ fontSize: '13px', marginBottom: '16px' }}>गूगल क्लाइंट आईडी अनुपस्थित है। डेटाबेस कनेक्शन जांचने के लिए कोई भी ईमेल टाइप करें:</p>

@@ -548,19 +548,21 @@ p {
 .quiz-feedback {
   margin-top: 16px;
   padding: 16px;
-  border-radius: 14px;
-  border: 1px solid transparent;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
   animation: slideUp 0.25s ease-out;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .feedback-correct {
-  background-color: var(--success-bg);
-  border-color: var(--success-border);
+  background-color: var(--success-bg) !important;
+  border-color: var(--success-border) !important;
 }
 
 .feedback-incorrect {
-  background-color: var(--error-bg);
-  border-color: var(--error-border);
+  background-color: var(--error-bg) !important;
+  border-color: var(--error-border) !important;
 }
 
 .feedback-title {
@@ -1333,5 +1335,19 @@ p {
 @keyframes pulseIndicator {
   0% { transform: scale(0.7); opacity: 0.4; }
   100% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 8px var(--secondary); }
+}
+
+/* Frosted Glass styling for speech exercises box */
+.speech-phrase-card {
+  width: 100%;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
 }
 

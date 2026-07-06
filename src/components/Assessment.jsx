@@ -315,16 +315,7 @@ export default function Assessment({ onComplete }) {
       case 'speech':
         return (
           <div className="speech-container">
-            <div
-              style={{
-                width: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '16px',
-                padding: '20px',
-                textAlign: 'center'
-              }}
-            >
+            <div className="speech-phrase-card">
               <div
                 style={{
                   fontSize: '22px',

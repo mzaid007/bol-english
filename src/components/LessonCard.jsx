@@ -441,7 +441,7 @@ export default function LessonCard({ lesson, onComplete, onBack }) {
 
           {quiz.type === 'speech' && (
             <div className="speech-container">
-              <div style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '16px', textAlign: 'center' }}>
+              <div className="speech-phrase-card">
                 <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--secondary)' }}>
                   {quiz.speechText}
                 </div>
