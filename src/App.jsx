@@ -46,6 +46,7 @@ export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   // Load profile and progress on mount
   useEffect(() => {
@@ -95,10 +96,18 @@ export default function App() {
   // Simple Email Login Handler (Option A - Passwordless Email Sync)
   const handleEmailLoginSubmit = async (e) => {
     e.preventDefault();
-    if (!emailInput.trim()) return;
-    await processUserLogin(emailInput.trim(), tempName || profile.name || "User", "");
-    setEmailInput('');
-    setShowLoginModal(false);
+    if (!emailInput.trim() || isConnecting) return;
+    setIsConnecting(true);
+    try {
+      await processUserLogin(emailInput.trim(), tempName || profile.name || "User", "");
+      setEmailInput('');
+      setShowLoginModal(false);
+    } catch (err) {
+      console.error(err);
+      alert("क्लाउड कनेक्शन धीमा है या विफल रहा। कृपया पुनः प्रयास करें।");
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   // Core Login Processing & Cloud Fetch
@@ -268,6 +277,7 @@ export default function App() {
                 type="button"
                 className="btn btn-secondary"
                 onClick={handleLogout}
+                disabled={isConnecting}
                 style={{ marginTop: '8px', padding: '6px 16px', fontSize: '12px', width: 'auto' }}
               >
                 लॉगआउट (Sign Out)
@@ -288,10 +298,16 @@ export default function App() {
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   required
+                  disabled={isConnecting}
                   style={{ margin: 0, flexGrow: 1 }}
                 />
-                <button type="submit" className="btn btn-primary" style={{ width: 'auto', whiteSpace: 'nowrap', padding: '0 20px' }}>
-                  सिंक करें (Connect)
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  disabled={isConnecting || !emailInput.trim()}
+                  style={{ width: 'auto', whiteSpace: 'nowrap', padding: '0 20px' }}
+                >
+                  {isConnecting ? "सिंक हो रहा है..." : "सिंक करें (Connect)"}
                 </button>
               </form>
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: '1.4' }}>
@@ -319,6 +335,7 @@ export default function App() {
               value={tempName}
               onChange={(e) => setTempName(e.target.value)}
               required
+              disabled={isConnecting}
             />
           </div>
 
@@ -331,10 +348,11 @@ export default function App() {
                   type="button"
                   key={emoji}
                   className={`avatar-option ${tempAvatar === emoji ? 'selected' : ''}`}
-                  onClick={() => setTempAvatar(emoji)}
+                  onClick={() => !isConnecting && setTempAvatar(emoji)}
                   role="radio"
                   aria-checked={tempAvatar === emoji}
                   aria-label={`Avatar option ${emoji}`}
+                  disabled={isConnecting}
                 >
                   {emoji}
                 </button>
@@ -350,11 +368,12 @@ export default function App() {
                 <div
                   key={goal.id}
                   className={`selector-item ${tempGoal === goal.id ? 'selected' : ''}`}
-                  onClick={() => setTempGoal(goal.id)}
+                  onClick={() => !isConnecting && setTempGoal(goal.id)}
                   role="radio"
                   aria-checked={tempGoal === goal.id}
-                  tabIndex={0}
+                  tabIndex={isConnecting ? -1 : 0}
                   onKeyDown={(e) => {
+                    if (isConnecting) return;
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       setTempGoal(goal.id);
@@ -371,7 +390,12 @@ export default function App() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ marginTop: '24px' }}>
+          <button 
+            type="submit" 
+            className="btn btn-primary" 
+            style={{ marginTop: '24px' }}
+            disabled={isConnecting}
+          >
             आगे बढ़ें (Let's Go) →
           </button>
         </form>
@@ -496,12 +520,26 @@ export default function App() {
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   required
+                  disabled={isConnecting}
                   autoFocus
                 />
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowLoginModal(false)}>बंद करें (Close)</button>
-                <button type="submit" className="btn btn-primary">कनेक्ट करें (Connect)</button>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowLoginModal(false)}
+                  disabled={isConnecting}
+                >
+                  बंद करें (Close)
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={isConnecting || !emailInput.trim()}
+                >
+                  {isConnecting ? "सिंक हो रहा है..." : "कनेक्ट करें (Connect)"}
+                </button>
               </div>
             </form>
           </div>
