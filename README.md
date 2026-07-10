@@ -1,21 +1,66 @@
 # BolEnglish - Learn English from Hindi (हिन्दी से अंग्रेजी सीखें)
 
-BolEnglish is a modern, lightweight, mobile-first, and desktop-friendly single-page web application built with **React, Vite, and Vanilla CSS** to help Hindi-speaking learners analyze their English proficiency and learn English for free.
-
-## Features
-
-1. **Bilingual Onboarding**: Greeting, name, and goal selection customized in Hindi and English.
-2. **Proficiency Analyzer (Diagnostic Quiz)**: A 10-question evaluation covering Vocabulary, Grammar, Listening Comprehension, and Speech Pronunciation. It recommends a placement tier: **Beginner (बुनियादी)**, **Intermediate (मध्यम)**, or **Advanced (उच्च)**.
-3. **Structured Lessons**: Curated conversational cards with English audio pronunciation, Hindi meanings, and practical grammar details explained in easy Hindi.
-4. **Gamified Streaks & XP**: Saves progress, streaks, and experience points (XP) in the browser's local storage and syncs to the cloud.
-5. **Interactive Voice Practice**: Uses browser-native Web Speech API for text-to-speech listening and microphone speaking checks, all 100% free with zero backend server dependencies.
-6. **Cloud Progress Sync**: Google Sign-In paired with Vercel Serverless Functions and a lifetime-free MongoDB Atlas database to back up and sync learning progress across all devices.
+BolEnglish is a modern, lightweight, mobile-first, and desktop-friendly web application built with **React Router, Context API, and Vanilla CSS** to help Hindi-speaking learners analyze their English proficiency and learn English for free.
 
 ---
 
-## Local Development Setup
+## 🚀 Key Improvements in the Rebuilt Version
 
-To run the application locally on your computer:
+1. **Modular Architecture**: Rebuilt from a monolithic single-screen manager into clean, maintainable routes (`Onboarding`, `Assessment`, `Dashboard`, `Lesson`, `Profile`) using **React Router (v7)**.
+2. **Context API State Management**: Replaces prop drilling by consolidating profile, learning progress, and sync actions in a global `AppContext`.
+3. **Bilingual Email-Based Cloud Sync**: Dropped heavy Google OAuth configurations in favor of a direct, friction-free email-based sync. Progress, XP, streaks, and accuracy stats are backed up dynamically to a free MongoDB Atlas instance.
+4. **Deduplicated Quiz Engine**: Unified written and speaking questions into a singular `<QuestionBody />` layout parser (covering MCQ, reordering, listening, and speaking modules).
+5. **Speech hook (`useSpeech`)**: Consolidated native Web Speech API Text-to-Speech (TTS) and Speech-to-Text (STT) into a reusable hook. Audio is warm-started on mount and only plays on explicit clicks (no intrusive auto-play).
+6. **Refined Modern Design System**: A clean, light theme utilizing custom CSS tokens. High-contrast slate text colors resolve old white-on-white visibility issues. Fully responsive, lightweight layout with beautiful colored ambient backdrop blobs.
+7. **Accuracy Tracking**: Wired up an accuracy tracking mechanism (`trackAnswer`) to persist correct-to-total question statistics.
+8. **Toast & Modal Dialogs**: Custom, accessible `<Toast />` and `<Modal />` overlays replace native browser alerts and confirms.
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+├── main.jsx                 # Entry point setting up routes
+├── App.jsx                  # Main router and state providers setup
+├── context/
+│   ├── AppContext.jsx       # Unified profile, progress, and database sync state
+│   └── ToastContext.jsx     # Global notification toast queues
+├── hooks/
+│   └── useSpeech.js         # Unified STT and TTS speech controller
+├── routes/
+│   ├── OnboardingRoute.jsx  # Greeting, name, avatar, and email restore portal
+│   ├── AssessmentRoute.jsx  # 10-question placement analyzer
+│   ├── DashboardRoute.jsx   # Tabbed syllabus of 15 interactive lessons
+│   ├── LessonRoute.jsx      # Slide player (vocab → grammar → practice → reward)
+│   └── ProfileRoute.jsx     # Stats panel, cloud sync control, reset safety
+├── components/
+│   ├── layout/
+│   │   ├── AppHeader.jsx    # Sticky header with streak & XP stats
+│   │   ├── BottomNav.jsx    # Bottom persistent navigation bar
+│   │   └── RouteGuard.jsx   # Client router redirects for guest/onboarded states
+│   ├── ui/                  # Tailored design system primitives
+│   │   └── Button.jsx, Card.jsx, ProgressBar.jsx, Badge.jsx, Modal.jsx, StatChip.jsx
+│   ├── quiz/                # Deduplicated interactive modules
+│   │   └── McqQuestion.jsx, ReorderQuestion.jsx, ListeningQuestion.jsx, SpeechQuestion.jsx
+│   └── SyncSheet.jsx        # Connecting email slide-up card
+├── styles/                  # CSS layout system
+│   ├── tokens.css           # Theme colors, borders, and margins
+│   ├── base.css, components.css, utilities.css
+│   └── index.css            # Imports all style layers
+├── data/
+│   └── curriculum.js        # 15 course lessons and 10 assessment questions
+└── services/
+    ├── storage.js           # Client localStorage state adapters
+    ├── sync.js              # Serverless API cloud adapter
+    └── speech.js            # Voice synthesis and recognition engine
+```
+
+---
+
+## 🛠️ Local Development Setup
+
+To run the application locally on your machine:
 
 1. **Install Node.js** (v18 or higher recommended).
 2. Open your terminal in the project directory and install dependencies:
@@ -30,19 +75,12 @@ To run the application locally on your computer:
 
 ---
 
-## Environment Configuration
+## ☁️ Environment Configuration
 
-To set up Google Sign-In and cloud saving, configure the following environment variables:
+To set up cloud sync and back up user progress, configure the database connection:
 
-### 1. Frontend Environment Variables (Local `.env` file or Vercel)
-Create a `.env` file in the root directory:
-```env
-VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
-```
-*Note: If `VITE_GOOGLE_CLIENT_ID` is empty or omitted, the application runs in **Developer Test Mode**. On the onboarding screen, a link called "ईमेल से डेटा रीस्टोर करें (Atlas Sync)" will appear. This lets you enter any email address to test the database sync and fetch routes instantly without setting up Google OAuth credentials first!*
-
-### 2. Backend Environment Variables (Vercel Dashboard)
-In your Vercel Project Settings under **Environment Variables**, add:
+### Backend Environment Variables (Vercel Settings)
+In your Vercel Project Dashboard under **Settings → Environment Variables**, add:
 ```env
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
 ```
@@ -50,39 +88,28 @@ MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retr
 
 ---
 
-## Deployment & Hosting Guide (100% Free)
+## 🚀 Deployment (100% Free)
 
-Since BolEnglish uses Vercel Serverless Functions, deploying to **Vercel** is the easiest way to get the frontend and backend running together for free in one click.
+Since BolEnglish utilizes Vercel Serverless Functions for database API operations, deploying directly to **Vercel** is the easiest way to host the frontend and serverless API together:
 
-### Step 1: Upload to GitHub
-
-1. Initialize git and commit your files (already configured in the project):
+1. Initialize git and commit your files:
    ```bash
    git init
-   git add .
-   git commit -m "Initialize BolEnglish English learning project"
    ```
-2. Create a new **public** repository on [GitHub](https://github.com).
-3. Connect your local repository and push:
+2. Make a new **public** repository on [GitHub](https://github.com).
+3. Connect your local directory and push:
    ```bash
    git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
    git branch -M main
    git push -u origin main
    ```
-
-### Step 2: Deploy to Vercel
-
-1. Log in to [Vercel](https://vercel.com) using your GitHub account.
-2. Click **Add New** -> **Project**.
-3. Import your `BolEnglish` repository.
-4. Expand the **Environment Variables** section and add `MONGODB_URI`.
-5. Click **Deploy**. Vercel will automatically host the React app on a `vercel.app` domain and deploy the serverless functions in the `/api` directory.
+4. Link Vercel to your GitHub, import this repository, supply the `MONGODB_URI` environment variable, and hit **Deploy**.
 
 ---
 
-## Web Speech API Support Notes
+## 🎙️ Web Speech API Support Notes
 
-- **Listening (Text-to-Speech)**: Universally supported on modern mobile and desktop browsers (iOS Safari, Android Chrome, Edge, etc.).
-- **Speaking (Voice Recognition)**: Uses the browser's built-in recognition engine.
-  - **Android/Chrome/Edge/Desktop**: Highly supported and functions immediately.
-  - **iOS/Safari**: Requires HTTPS (default on Vercel), and safari security rules require direct user interaction (such as tapping the mic button) to grant permissions, which this app handles. A fallback "Skip" button is provided for other browsers.
+- **Listening (Text-to-Speech)**: Universally supported on mobile and desktop browsers (iOS Safari, Android Chrome, Edge, etc.).
+- **Speaking (Voice Recognition)**:
+  - **Android/Chrome/Edge/Desktop**: Highly supported and works instantly.
+  - **iOS/Safari**: Requires HTTPS (default on Vercel) and user interaction to prompt mic permissions. A fallback "Skip" button is provided for non-supported browsers.

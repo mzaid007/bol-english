@@ -1,0 +1,79 @@
+/* ============================================================
+   BolEnglish Design Tokens
+   "Refined modern" — clean light, indigo accent, slate text.
+   Every visual value lives here. No hardcoded colors in JSX.
+   ============================================================ */
+:root {
+  /* --- Brand / Accent --- */
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-active: #3730a3;
+  --accent-soft: #eef2ff;
+  --accent-soft-border: #c7d2fe;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+
+  /* --- Secondary (sky) used sparingly for accents --- */
+  --sky: #0ea5e9;
+  --sky-soft: #e0f2fe;
+
+  /* --- Semantic --- */
+  --success: #16a34a;
+  --success-soft: #dcfce7;
+  --success-border: #86efac;
+
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --warning-border: #fcd34d;
+
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --danger-border: #fca5a5;
+
+  /* --- Neutral surfaces (clean light) --- */
+  --canvas: #f1f5f9;
+  --canvas-gradient: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  --surface: #ffffff;
+  --surface-2: #f8fafc;       /* subtle raised/sunken backgrounds */
+  --surface-3: #f1f5f9;
+  --overlay: rgba(15, 23, 42, 0.45);
+
+  /* --- Text (high-contrast slate) --- */
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-on-accent: #ffffff;
+  --text-hindi: #1e293b;
+
+  /* --- Borders & shadows --- */
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --ring: rgba(79, 70, 229, 0.35);
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+  --shadow-accent: 0 8px 20px rgba(79, 70, 229, 0.28);
+
+  /* --- Radii --- */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 9999px;
+
+  /* --- Typography --- */
+  --font-sans: 'Poppins', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
+  --font-hindi: 'Noto Sans Devanagari', 'Poppins', sans-serif;
+
+  /* --- Layout --- */
+  --max-width: 680px;
+  --header-height: 60px;
+  --bottom-nav-height: 64px;
+
+  /* --- Motion --- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --dur-fast: 0.15s;
+  --dur: 0.25s;
+}
