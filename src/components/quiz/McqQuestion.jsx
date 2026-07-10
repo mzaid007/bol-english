@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import SpeakButton from '../ui/SpeakButton';
+
+const isEnglish = (text) => /[a-zA-Z]/.test(text);
 
 /**
  * Multiple-choice question. Shared between Assessment and Lesson practice.
@@ -38,7 +41,10 @@ export default function McqQuestion({ options = [], correctAnswer, onResolved, d
           onClick={() => handlePick(option)}
           disabled={answered || disabled}
         >
-          <span>{option}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flexGrow: 1 }}>
+            {option}
+            {isEnglish(option) && <SpeakButton text={option} />}
+          </span>
           {answered && option === correctAnswer && <span className="check">✓</span>}
           {answered && option === selected && option !== correctAnswer && <span className="check">✗</span>}
         </button>

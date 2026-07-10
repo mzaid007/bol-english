@@ -6,12 +6,15 @@ import { useSpeech } from '../hooks/useSpeech';
 import ProgressBar from '../components/ui/ProgressBar';
 import Button from '../components/ui/Button';
 import QuestionBody from '../components/quiz/QuestionBody';
+import SpeakButton from '../components/ui/SpeakButton';
 
 const DIFFICULTY_LABEL = {
   beginner: 'बुनियादी (Beginner)',
   intermediate: 'मध्यम (Intermediate)',
   advanced: 'उच्च (Advanced)',
 };
+
+const hasEnglishText = (text) => text && /[a-zA-Z]/.test(text);
 
 export default function AssessmentRoute() {
   const navigate = useNavigate();
@@ -62,6 +65,12 @@ export default function AssessmentRoute() {
 
   const progressPercent = ((index + 1) / total) * 100;
 
+  const ansStr = question
+    ? Array.isArray(question.correctAnswer)
+      ? question.correctAnswer.join(' ')
+      : question.correctAnswer
+    : '';
+
   return (
     <div className="app-container no-nav page">
       {/* Header row */}
@@ -99,6 +108,12 @@ export default function AssessmentRoute() {
               {isCorrect ? '🎉 सही उत्तर! (Correct)' : '💡 कोई बात नहीं (Keep practicing)'}
             </div>
             <p className="feedback-explanation hindi-text">{question.explanation}</p>
+            {hasEnglishText(ansStr) && (
+              <div className="mt-8 row gap-6 text-xs bold secondary items-center" style={{ flexWrap: 'wrap' }}>
+                <span>सही उत्तर: <strong>{ansStr}</strong></span>
+                <SpeakButton text={ansStr} />
+              </div>
+            )}
           </div>
           <Button className="mt-12" onClick={next}>
             {index < total - 1 ? 'अगला प्रश्न (Next) →' : 'नतीजा देखें (Show Results) →'}

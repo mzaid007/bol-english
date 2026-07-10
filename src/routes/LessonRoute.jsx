@@ -7,6 +7,9 @@ import ProgressBar from '../components/ui/ProgressBar';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import QuestionBody from '../components/quiz/QuestionBody';
+import SpeakButton from '../components/ui/SpeakButton';
+
+const hasEnglishText = (text) => text && /[a-zA-Z]/.test(text);
 
 export default function LessonRoute() {
   const { id } = useParams();
@@ -236,7 +239,7 @@ export default function LessonRoute() {
         </div>
 
         {isAnswered && (
-          <div className="mt-20" style={{ animation: 'slideUp 0.25s ease-out' }}>
+          <div className="mt-20">
             <div className={`quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}`}>
               <div className="feedback-title">
                 {isCorrect ? '🎉 बहुत बढ़िया! (Correct)' : '💡 कोई बात नहीं (Keep practicing)'}
@@ -246,6 +249,14 @@ export default function LessonRoute() {
                   ? 'अंग्रेजी बोलने का अभ्यास करते रहने से आपका उच्चारण सुधरता है।'
                   : `सही उत्तर है: "${Array.isArray(quiz.correctAnswer) ? quiz.correctAnswer.join(' ') : quiz.correctAnswer}"`}
               </p>
+              {quiz.type !== 'speech' && hasEnglishText(
+                Array.isArray(quiz.correctAnswer) ? quiz.correctAnswer.join(' ') : quiz.correctAnswer
+              ) && (
+                <div className="mt-8 row gap-6 text-xs bold secondary items-center" style={{ flexWrap: 'wrap' }}>
+                  <span>सुनें (Listen):</span>
+                  <SpeakButton text={Array.isArray(quiz.correctAnswer) ? quiz.correctAnswer.join(' ') : quiz.correctAnswer} />
+                </div>
+              )}
             </div>
 
             <Button onClick={nextQuiz} className="mt-12">
