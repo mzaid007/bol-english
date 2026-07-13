@@ -1,16 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * High-Density Newtonian Gravitational Swarm Background.
- * Renders 1500 physics-enabled particles in a cosmic field.
- * 
- * Implements an intense gravitational pull and deep damping when particles are near 
- * the cursor, forcing them to decelerate rapidly and cluster tightly around the mouse 
- * like a highly responsive organic swarm.
+ * Newtonian Gravitational Swarm Background (Google Antigravity style).
+ * Simulates a particle vortex where the cursor acts as the center of gravity.
+ * The entire vortex center eases smoothly toward the cursor (or resets to center-screen),
+ * while particles maintain orbital paths at their respective radiuses,
+ * leaving a clean "eye" around the cursor and creating fluid trail animations.
  */
 export default function InteractiveBackground() {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -1000, y: -1000, active: false });
+  const vortexCenterRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -25,6 +25,10 @@ export default function InteractiveBackground() {
 
     let centerX = width / 2;
     let centerY = height / 2;
+    
+    // Initialize vortex center at center-screen
+    vortexCenterRef.current.x = centerX;
+    vortexCenterRef.current.y = centerY;
 
     const handleResize = () => {
       width = canvas.width = window.innerWidth;
@@ -47,24 +51,24 @@ export default function InteractiveBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    // Highly dense swarm count (1500 particles)
+    // Dense particle count (1500 particles for high-fidelity vortex)
     const particleCount = 1500;
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
       const maxDim = Math.max(width, height);
-      const radius = Math.random() * (maxDim * 0.75) + 10;
+      // Orbit radiuses starting from 25px out to 70% of viewport size
+      const radius = Math.random() * (maxDim * 0.7) + 25;
       const angle = Math.random() * Math.PI * 2;
       
-      // Determine a rich, high-contrast color palette visible on light backgrounds
-      let color = 'rgba(37, 99, 235, 0.85)'; // Royal Blue (default)
+      let color = 'rgba(37, 99, 235, 0.82)'; // Royal Blue
       const roll = Math.random();
       if (roll < 0.25) {
-        color = 'rgba(79, 70, 229, 0.82)'; // Indigo
+        color = 'rgba(79, 70, 229, 0.8)'; // Indigo
       } else if (roll < 0.45) {
-        color = 'rgba(124, 58, 237, 0.8)'; // Purple
+        color = 'rgba(124, 58, 237, 0.78)'; // Purple
       } else if (roll < 0.7) {
-        color = 'rgba(15, 23, 42, 0.55)'; // Deep Slate/Charcoal for contrast
+        color = 'rgba(15, 23, 42, 0.52)'; // Slate Charcoal for contrast
       }
 
       particles.push({
@@ -74,76 +78,52 @@ export default function InteractiveBackground() {
         vy: 0,
         radius,
         angle,
+        // Orbital speed
         speed: (0.0003 + Math.random() * 0.0006) * (radius < 350 ? 1.4 : 0.8),
-        length: 3.5 + Math.random() * 5.5, // dash length
-        thickness: 1.3 + Math.random() * 1.3, // dash thickness
+        length: 4 + Math.random() * 5.5,
+        thickness: 1.2 + Math.random() * 1.3,
         color,
-        z: 0.35 + Math.random() * 0.65, // depth multiplier
+        z: 0.35 + Math.random() * 0.65, // depth factor
       });
     }
 
     // Animation Loop
     const render = () => {
       ctx.clearRect(0, 0, width, height);
+      
       const mouse = mouseRef.current;
+      const vortex = vortexCenterRef.current;
+
+      // 1. Ease the vortex center towards its target (cursor or screen center)
+      const targetCenterX = mouse.active ? mouse.x : centerX;
+      const targetCenterY = mouse.active ? mouse.y : centerY;
+
+      // Smooth lag interpolation
+      vortex.x = vortex.x * 0.91 + targetCenterX * 0.09;
+      vortex.y = vortex.y * 0.91 + targetCenterY * 0.09;
 
       for (let i = 0; i < particleCount; i++) {
         const p = particles[i];
 
-        // 1. Advance the particle's default orbital angle
+        // 2. Advance orbital angle
         p.angle += p.speed;
 
-        // 2. Default target position in the vortex
-        const targetX = centerX + Math.cos(p.angle) * p.radius;
-        const targetY = centerY + Math.sin(p.angle) * p.radius;
+        // 3. Compute target coordinates relative to the moving vortex center
+        const tx = vortex.x + Math.cos(p.angle) * p.radius;
+        const ty = vortex.y + Math.sin(p.angle) * p.radius;
 
-        // 3. Default velocity vector pointing towards the target vortex path
-        const defaultVx = (targetX - p.x) * 0.055;
-        const defaultVy = (targetY - p.y) * 0.055;
+        // 4. Update velocities (spring easing with 92% momentum)
+        p.vx = p.vx * 0.92 + (tx - p.x) * 0.08;
+        p.vy = p.vy * 0.92 + (ty - p.y) * 0.08;
 
-        let ax = 0;
-        let ay = 0;
-        let damping = 0.94;
-        let returnWeight = 0.06;
-
-        // 4. Newtonian Gravity Force with Dynamic Swarm Cohesion
-        if (mouse.active) {
-          const dx = mouse.x - p.x;
-          const dy = mouse.y - p.y;
-          const distSqr = dx * dx + dy * dy;
-          const dist = Math.sqrt(distSqr);
-
-          if (dist > 5) {
-            // Massive gravitational pull (G = 2400) to capture distant particles
-            const G = 2400 * p.z; 
-            // Narrow softening factor (300) produces sharp, tight acceleration near the cursor
-            const accel = G / (distSqr + 300);
-            ax = (dx / dist) * accel;
-            ay = (dy / dist) * accel;
-
-            // Swarm Attraction & Capture:
-            // When particles enter the cursor field (280px), we bleed their velocity (damping)
-            // and suppress their returning vortex force so they swarm directly on the cursor.
-            if (dist < 280) {
-              const ratio = dist / 280;
-              damping = 0.68 + ratio * 0.26;        // 0.68 at cursor center (extremely sticky)
-              returnWeight = 0.002 + ratio * 0.058;  // almost completely ignore default orbit near cursor
-            }
-          }
-        }
-
-        // 5. Apply blended physics
-        p.vx = (p.vx + ax) * damping + defaultVx * returnWeight;
-        p.vy = (p.vy + ay) * damping + defaultVy * returnWeight;
-
-        // 6. Update position
+        // 5. Update positions
         p.x += p.vx;
         p.y += p.vy;
 
-        // 7. Calculate heading vector along actual velocity
+        // 6. Heading vector along physical motion
         const heading = Math.atan2(p.vy, p.vx);
 
-        // 8. Paint particles
+        // 7. Paint particles
         ctx.lineWidth = p.thickness * p.z;
         ctx.strokeStyle = p.color;
         ctx.lineCap = 'round';
