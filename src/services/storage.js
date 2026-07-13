@@ -1,14 +1,40 @@
 // Storage Service using HTML5 localStorage with an extensible adapter pattern
+// Wrapped in safe try-catch blocks to prevent browser security settings (e.g. cookies blocked) from crashing the app.
 
 const STORAGE_KEYS = {
   PROFILE: 'lang_teacher_profile',
   PROGRESS: 'lang_teacher_progress'
 };
 
+const safeLocalStorage = {
+  getItem(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn("StorageService: localStorage read blocked or unavailable.", e);
+      return null;
+    }
+  },
+  setItem(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn("StorageService: localStorage write blocked or unavailable.", e);
+    }
+  },
+  removeItem(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn("StorageService: localStorage remove blocked or unavailable.", e);
+    }
+  }
+};
+
 export const StorageService = {
   // Get user profile (details about placement level, onboarding status, name)
   getProfile() {
-    const data = localStorage.getItem(STORAGE_KEYS.PROFILE);
+    const data = safeLocalStorage.getItem(STORAGE_KEYS.PROFILE);
     return data ? JSON.parse(data) : {
       name: '',
       goal: '',
@@ -20,12 +46,12 @@ export const StorageService = {
 
   // Save user profile
   saveProfile(profile) {
-    localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
+    safeLocalStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
   },
 
   // Get user progress stats (completed lessons, XP, streaks, and timestamps)
   getProgress() {
-    const data = localStorage.getItem(STORAGE_KEYS.PROGRESS);
+    const data = safeLocalStorage.getItem(STORAGE_KEYS.PROGRESS);
     return data ? JSON.parse(data) : {
       completedLessons: [], // Array of lesson IDs
       xp: 0,
@@ -38,7 +64,7 @@ export const StorageService = {
 
   // Save user progress stats
   saveProgress(progress) {
-    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(progress));
+    safeLocalStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(progress));
   },
 
   // Add XP to the user
@@ -95,7 +121,7 @@ export const StorageService = {
 
   // Reset local storage database to clear progress and restart onboarding
   resetAll() {
-    localStorage.removeItem(STORAGE_KEYS.PROFILE);
-    localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+    safeLocalStorage.removeItem(STORAGE_KEYS.PROFILE);
+    safeLocalStorage.removeItem(STORAGE_KEYS.PROGRESS);
   }
 };

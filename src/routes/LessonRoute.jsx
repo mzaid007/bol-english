@@ -86,7 +86,11 @@ export default function LessonRoute() {
     setIsCorrect(correct);
     setIsAnswered(true);
     if (correct) setQuizScore((s) => s + 1);
-    trackAnswer(correct);
+    try {
+      trackAnswer(correct);
+    } catch (e) {
+      console.warn("LessonRoute: Failed to track answer accuracy", e);
+    }
   };
 
   const nextQuiz = () => {

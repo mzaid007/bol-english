@@ -47,7 +47,11 @@ export default function AssessmentRoute() {
     setIsCorrect(correct);
     setIsAnswered(true);
     if (correct) setScore((s) => s + 1);
-    trackAnswer(correct);
+    try {
+      trackAnswer(correct);
+    } catch (e) {
+      console.warn("AssessmentRoute: Failed to track answer accuracy", e);
+    }
   };
 
   const next = () => {
