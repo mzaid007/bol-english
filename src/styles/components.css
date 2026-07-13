@@ -391,12 +391,12 @@
 .quiz-feedback.correct {
   background: var(--success-soft);
   border-color: var(--success-border);
-  animation: correctBounce 0.45s var(--ease-spring);
+  animation: slideUp var(--dur) var(--ease) both;
 }
 .quiz-feedback.incorrect {
   background: var(--danger-soft);
   border-color: var(--danger-border);
-  animation: slideUp var(--dur) var(--ease);
+  animation: slideUp var(--dur) var(--ease) both;
 }
 .feedback-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .quiz-feedback.correct .feedback-title { color: var(--success); }
