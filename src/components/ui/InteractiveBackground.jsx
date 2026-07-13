@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Newtonian Gravitational Particle Vortex Background.
- * Expanded to 450 particles with a highly intensified gravitational field
- * centered around the cursor, creating dramatic cosmic slingshots and orbits.
+ * Newtonian Gravitational Swarm Background.
+ * Renders 1200 particles swirling in a dense cosmic field.
+ * The cursor acts as a massive gravity well: when particles draw near,
+ * they decelerate (damped velocity) and suspend their default orbits to
+ * cluster tightly around the cursor, forming a highly responsive physical swarm.
  */
 export default function InteractiveBackground() {
   const canvasRef = useRef(null);
@@ -44,13 +46,14 @@ export default function InteractiveBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    // Dense particle count (increased to 450 for a rich starry field)
-    const particleCount = 450;
+    // Ultra-dense particle count (increased to 1200 for a rich, swarming dust cloud)
+    const particleCount = 1200;
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
       const maxDim = Math.max(width, height);
-      const radius = Math.random() * (maxDim * 0.7) + 20;
+      // Generate particles across a wide radius
+      const radius = Math.random() * (maxDim * 0.72) + 15;
       const angle = Math.random() * Math.PI * 2;
       
       particles.push({
@@ -60,13 +63,12 @@ export default function InteractiveBackground() {
         vy: 0,
         radius,
         angle,
-        // Default vortex speed
-        speed: (0.0004 + Math.random() * 0.0008) * (radius < 350 ? 1.4 : 0.8),
-        length: 4 + Math.random() * 6,
-        thickness: 1.1 + Math.random() * 1.3,
+        speed: (0.0003 + Math.random() * 0.0007) * (radius < 350 ? 1.4 : 0.8),
+        length: 3 + Math.random() * 5, // slightly shorter dashes for dense swarm cohesion
+        thickness: 1.1 + Math.random() * 1.2,
         color: Math.random() > 0.45 
-          ? 'rgba(37, 99, 235, 0.72)' // Royal Blue specks
-          : 'rgba(30, 41, 59, 0.48)', // Slate Grey specks
+          ? 'rgba(37, 99, 235, 0.72)' // Royal Blue particles
+          : 'rgba(30, 41, 59, 0.45)', // Slate Grey particles
         z: 0.35 + Math.random() * 0.65, // Depth multiplier
       });
     }
@@ -92,33 +94,44 @@ export default function InteractiveBackground() {
 
         let ax = 0;
         let ay = 0;
+        let damping = 0.94;
+        let returnWeight = 0.06;
 
-        // 4. Newtonian Gravity Force: F = G * m1 * m2 / r^2
+        // 4. Newtonian Gravity Force with Dynamic Sticky-Damping
         if (mouse.active) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
           const distSqr = dx * dx + dy * dy;
           const dist = Math.sqrt(distSqr);
 
-          if (dist > 6) {
-            // Intensified Gravitational Constant (increased from 180 to 480)
-            const G = 480 * p.z; 
-            // Reduced softening factor (800) makes the gravitational pull much tighter and stronger
-            const accel = G / (distSqr + 800);
+          if (dist > 5) {
+            // Massive gravitational constants (G = 1600) to pull from far away
+            const G = 1600 * p.z; 
+            // Narrow softening factor (400) creates high acceleration near the center
+            const accel = G / (distSqr + 400);
             ax = (dx / dist) * accel;
             ay = (dy / dist) * accel;
+
+            // Swarm Attraction Mechanism:
+            // When particles enter the cursor field (280px), we bleed their speed (damping)
+            // and reduce their return-to-orbit force (returnWeight) so they stay clustered.
+            if (dist < 280) {
+              const ratio = dist / 280;
+              damping = 0.81 + ratio * 0.13;      // 0.81 at cursor center (heavy stickiness)
+              returnWeight = 0.008 + ratio * 0.052; // almost completely ignore default orbit near cursor
+            }
           }
         }
 
-        // 5. Blended Physics: 93% momentum + gravity, 7% return force for clean orbit recovery
-        p.vx = (p.vx + ax) * 0.93 + defaultVx * 0.07;
-        p.vy = (p.vy + ay) * 0.93 + defaultVy * 0.07;
+        // 5. Apply blended physics
+        p.vx = (p.vx + ax) * damping + defaultVx * returnWeight;
+        p.vy = (p.vy + ay) * damping + defaultVy * returnWeight;
 
         // 6. Update position
         p.x += p.vx;
         p.y += p.vy;
 
-        // 7. Calculate heading vector for slanted rendering along actual velocity
+        // 7. Calculate heading vector along actual velocity
         const heading = Math.atan2(p.vy, p.vx);
 
         // 8. Paint particles
