@@ -183,8 +183,9 @@ export default function InteractiveBackground() {
       }
     ];
 
-    // High-density asteroid count (5000 items)
-    const particleCount = 5000;
+    // Set particle count dynamically: 1200 on mobile viewports (<768px), 5000 on desktop
+    const isMobile = width < 768;
+    const particleCount = isMobile ? 1200 : 5000;
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
