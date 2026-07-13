@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 /**
  * Simplified, hardware-accelerated Interactive Background.
- * Tracks mouse movements dynamically without state-dependency loops,
- * translating wrappers using translate3d for smooth rendering performance.
+ * Tracks mouse movements dynamically and renders:
+ * 1. Three blurred background blobs.
+ * 2. A sharp red debug dot in the top-left corner to scientifically verify if transforms are executing.
  */
 export default function InteractiveBackground() {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -21,6 +22,23 @@ export default function InteractiveBackground() {
 
   return (
     <div className="interactive-bg" aria-hidden="true">
+      {/* Scientific Debug Dot: Sharp, solid, and high z-index to isolate animation rendering. */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '30px',
+          left: '30px',
+          width: '16px',
+          height: '16px',
+          borderRadius: '50%',
+          background: '#ef4444',
+          zIndex: '999999',
+          transform: `translate3d(${coords.x * 300}px, ${coords.y * 300}px, 0)`,
+          pointerEvents: 'none',
+          boxShadow: '0 0 10px rgba(239, 68, 68, 0.8)',
+        }}
+      />
+
       {/* Indigo Blob - Top Left */}
       <div
         className="blob-wrapper"
