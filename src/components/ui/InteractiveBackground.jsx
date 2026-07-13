@@ -2,12 +2,8 @@ import React, { useEffect, useRef } from 'react';
 
 /**
  * Newtonian Gravitational Particle Vortex Background.
- * Simulates a true gravitational force field where the mouse cursor acts
- * as a gravitational body (attracting particles with acceleration, causing
- * cometary slingshots and dynamic orbital paths).
- * 
- * Each particle's velocity vector determines its rendering heading, producing
- * beautifully aligned slanted dashes that curve organically.
+ * Expanded to 450 particles with a highly intensified gravitational field
+ * centered around the cursor, creating dramatic cosmic slingshots and orbits.
  */
 export default function InteractiveBackground() {
   const canvasRef = useRef(null);
@@ -48,13 +44,13 @@ export default function InteractiveBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    // Generate 180 physics-enabled particles
-    const particleCount = 180;
+    // Dense particle count (increased to 450 for a rich starry field)
+    const particleCount = 450;
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
       const maxDim = Math.max(width, height);
-      const radius = Math.random() * (maxDim * 0.65) + 30;
+      const radius = Math.random() * (maxDim * 0.7) + 20;
       const angle = Math.random() * Math.PI * 2;
       
       particles.push({
@@ -66,12 +62,12 @@ export default function InteractiveBackground() {
         angle,
         // Default vortex speed
         speed: (0.0004 + Math.random() * 0.0008) * (radius < 350 ? 1.4 : 0.8),
-        length: 5 + Math.random() * 6,
-        thickness: 1.2 + Math.random() * 1.3,
+        length: 4 + Math.random() * 6,
+        thickness: 1.1 + Math.random() * 1.3,
         color: Math.random() > 0.45 
-          ? 'rgba(37, 99, 235, 0.72)' // royal blue
-          : 'rgba(30, 41, 59, 0.48)', // slate grey
-        z: 0.4 + Math.random() * 0.6, // depth multiplier
+          ? 'rgba(37, 99, 235, 0.72)' // Royal Blue specks
+          : 'rgba(30, 41, 59, 0.48)', // Slate Grey specks
+        z: 0.35 + Math.random() * 0.65, // Depth multiplier
       });
     }
 
@@ -91,8 +87,8 @@ export default function InteractiveBackground() {
         const targetY = centerY + Math.sin(p.angle) * p.radius;
 
         // 3. Default velocity vector pointing towards the target vortex path
-        const defaultVx = (targetX - p.x) * 0.06;
-        const defaultVy = (targetY - p.y) * 0.06;
+        const defaultVx = (targetX - p.x) * 0.05;
+        const defaultVy = (targetY - p.y) * 0.05;
 
         let ax = 0;
         let ay = 0;
@@ -104,19 +100,19 @@ export default function InteractiveBackground() {
           const distSqr = dx * dx + dy * dy;
           const dist = Math.sqrt(distSqr);
 
-          if (dist > 8) {
-            // Stronger pull for foreground particles
-            const G = 180 * p.z; 
-            // Softening factor (1200) prevents division by zero / infinite speed near cursor
-            const accel = G / (distSqr + 1200);
+          if (dist > 6) {
+            // Intensified Gravitational Constant (increased from 180 to 480)
+            const G = 480 * p.z; 
+            // Reduced softening factor (800) makes the gravitational pull much tighter and stronger
+            const accel = G / (distSqr + 800);
             ax = (dx / dist) * accel;
             ay = (dy / dist) * accel;
           }
         }
 
-        // 5. Blended Physics: 94% momentum + gravity, 6% return force to keep orbit structural
-        p.vx = (p.vx + ax) * 0.94 + defaultVx * 0.06;
-        p.vy = (p.vy + ay) * 0.94 + defaultVy * 0.06;
+        // 5. Blended Physics: 93% momentum + gravity, 7% return force for clean orbit recovery
+        p.vx = (p.vx + ax) * 0.93 + defaultVx * 0.07;
+        p.vy = (p.vy + ay) * 0.93 + defaultVy * 0.07;
 
         // 6. Update position
         p.x += p.vx;
