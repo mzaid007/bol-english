@@ -1,16 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Newtonian Gravitational Swarm Background (Google Antigravity style).
- * Simulates a particle vortex where the cursor acts as the center of gravity.
- * The entire vortex center eases smoothly toward the cursor (or resets to center-screen),
- * while particles maintain orbital paths at their respective radiuses,
- * leaving a clean "eye" around the cursor and creating fluid trail animations.
+ * High-Fidelity Google Antigravity Particle Vortex Background.
+ * Renders particles swirling in a structural vortex where:
+ * 1. Particles default to circular/spiral orbits around the vortex center.
+ * 2. The cursor exerts a powerful Newtonian gravitational pull (attracting
+ *    particles toward it with speed accumulation and slingshot orbits).
+ * 3. Each particle's velocity vector dynamically determines its heading angle,
+ *    aligning the dashes along their actual path of movement.
+ * 4. Critical Fix: Velocity limits (capping speed) are applied to prevent 
+ *    particles from building up extreme speed and escaping the viewport permanently.
+ * 5. Screen boundary wrapping ensures that if any particle escapes due to gravity,
+ *    it is gently wrapped back into the active screen canvas, maintaining density.
  */
 export default function InteractiveBackground() {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -1000, y: -1000, active: false });
-  const vortexCenterRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -25,10 +30,6 @@ export default function InteractiveBackground() {
 
     let centerX = width / 2;
     let centerY = height / 2;
-    
-    // Initialize vortex center at center-screen
-    vortexCenterRef.current.x = centerX;
-    vortexCenterRef.current.y = centerY;
 
     const handleResize = () => {
       width = canvas.width = window.innerWidth;
@@ -51,14 +52,14 @@ export default function InteractiveBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    // Dense particle count (1500 particles for high-fidelity vortex)
-    const particleCount = 1500;
+    // Generate 1200 physics-enabled particles
+    const particleCount = 1200;
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
       const maxDim = Math.max(width, height);
-      // Orbit radiuses starting from 25px out to 70% of viewport size
-      const radius = Math.random() * (maxDim * 0.7) + 25;
+      // Orbit radiuses starting from 25px out to 75% of viewport size
+      const radius = Math.random() * (maxDim * 0.75) + 25;
       const angle = Math.random() * Math.PI * 2;
       
       let color = 'rgba(37, 99, 235, 0.82)'; // Royal Blue
@@ -78,7 +79,6 @@ export default function InteractiveBackground() {
         vy: 0,
         radius,
         angle,
-        // Orbital speed
         speed: (0.0003 + Math.random() * 0.0006) * (radius < 350 ? 1.4 : 0.8),
         length: 4 + Math.random() * 5.5,
         thickness: 1.2 + Math.random() * 1.3,
@@ -92,38 +92,78 @@ export default function InteractiveBackground() {
       ctx.clearRect(0, 0, width, height);
       
       const mouse = mouseRef.current;
-      const vortex = vortexCenterRef.current;
-
-      // 1. Ease the vortex center towards its target (cursor or screen center)
-      const targetCenterX = mouse.active ? mouse.x : centerX;
-      const targetCenterY = mouse.active ? mouse.y : centerY;
-
-      // Smooth lag interpolation
-      vortex.x = vortex.x * 0.91 + targetCenterX * 0.09;
-      vortex.y = vortex.y * 0.91 + targetCenterY * 0.09;
 
       for (let i = 0; i < particleCount; i++) {
         const p = particles[i];
 
-        // 2. Advance orbital angle
+        // 1. Advance the particle's default orbital angle
         p.angle += p.speed;
 
-        // 3. Compute target coordinates relative to the moving vortex center
-        const tx = vortex.x + Math.cos(p.angle) * p.radius;
-        const ty = vortex.y + Math.sin(p.angle) * p.radius;
+        // 2. Default target position in the background vortex
+        const targetX = centerX + Math.cos(p.angle) * p.radius;
+        const targetY = centerY + Math.sin(p.angle) * p.radius;
 
-        // 4. Update velocities (spring easing with 92% momentum)
-        p.vx = p.vx * 0.92 + (tx - p.x) * 0.08;
-        p.vy = p.vy * 0.92 + (ty - p.y) * 0.08;
+        // 3. Default velocity vector pointing towards the target vortex path
+        const defaultVx = (targetX - p.x) * 0.055;
+        const defaultVy = (targetY - p.y) * 0.055;
 
-        // 5. Update positions
+        let ax = 0;
+        let ay = 0;
+        let damping = 0.94;
+        let returnWeight = 0.06;
+
+        // 4. Newtonian Gravity Force: F = G * m1 * m2 / r^2
+        if (mouse.active) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const distSqr = dx * dx + dy * dy;
+          const dist = Math.sqrt(distSqr);
+
+          if (dist > 5) {
+            // Strong Newtonian gravitational pull
+            const G = 1500 * p.z; 
+            const accel = G / (distSqr + 500);
+            ax = (dx / dist) * accel;
+            ay = (dy / dist) * accel;
+
+            // Swarm capturing: Damp velocities and reduce return weight near cursor
+            if (dist < 280) {
+              const ratio = dist / 280;
+              damping = 0.74 + ratio * 0.2;
+              returnWeight = 0.005 + ratio * 0.055;
+            }
+          }
+        }
+
+        // 5. Apply blended physics
+        p.vx = (p.vx + ax) * damping + defaultVx * returnWeight;
+        p.vy = (p.vy + ay) * damping + defaultVy * returnWeight;
+
+        // Velocity Speed Limiter: Caps maximum movement vector to keep particles bounded
+        const maxSpeed = 16 * p.z;
+        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (speed > maxSpeed) {
+          p.vx = (p.vx / speed) * maxSpeed;
+          p.vy = (p.vy / speed) * maxSpeed;
+        }
+
+        // 6. Update position
         p.x += p.vx;
         p.y += p.vy;
 
-        // 6. Heading vector along physical motion
+        // Boundary Wrap-Around: If a particle shoots completely off-screen,
+        // wrap it around to the opposite side to maintain field density.
+        const margin = 50;
+        if (p.x < -margin) { p.x = width + margin; p.vx *= -0.2; }
+        else if (p.x > width + margin) { p.x = -margin; p.vx *= -0.2; }
+        
+        if (p.y < -margin) { p.y = height + margin; p.vy *= -0.2; }
+        else if (p.y > height + margin) { p.y = -margin; p.vy *= -0.2; }
+
+        // 7. Heading vector along physical motion
         const heading = Math.atan2(p.vy, p.vx);
 
-        // 7. Paint particles
+        // 8. Paint particles
         ctx.lineWidth = p.thickness * p.z;
         ctx.strokeStyle = p.color;
         ctx.lineCap = 'round';
