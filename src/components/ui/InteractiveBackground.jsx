@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 
 /**
- * Interactive Background with Parallax Blobs that react to mouse movements.
- * Creates an elegant, high-fidelity depth effect reminiscent of the Google Antigravity theme.
+ * Interactive Background with dual-layer animations:
+ * 1. An outer wrapper that shifts with cursor movements (parallax vectors).
+ * 2. An inner blob that slowly drifts using CSS keyframes (universal floating support, including mobile).
  */
 export default function InteractiveBackground() {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    // Only capture cursor coordinates on devices with pointing inputs (desktops)
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    if (isMobile) return;
+    // Only capture coordinates on devices with cursor pointing capability
+    const media = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setIsDesktop(media.matches);
 
     const handleMouseMove = (e) => {
       const x = (e.clientX / window.innerWidth) - 0.5;
@@ -18,7 +20,9 @@ export default function InteractiveBackground() {
       setCoords({ x, y });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    if (media.matches) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
@@ -26,25 +30,33 @@ export default function InteractiveBackground() {
     <div className="interactive-bg" aria-hidden="true">
       {/* Indigo Blob - Top Left */}
       <div
-        className="bg-blob blob-indigo"
+        className="blob-wrapper"
         style={{
-          transform: `translate(${coords.x * 40}px, ${coords.y * 40}px)`,
+          transform: isDesktop ? `translate(${coords.x * 45}px, ${coords.y * 45}px)` : 'none',
         }}
-      />
+      >
+        <div className="bg-blob blob-indigo" />
+      </div>
+
       {/* Sky Blue Blob - Top Right */}
       <div
-        className="bg-blob blob-sky"
+        className="blob-wrapper"
         style={{
-          transform: `translate(${coords.x * -60}px, ${coords.y * -60}px)`,
+          transform: isDesktop ? `translate(${coords.x * -70}px, ${coords.y * -70}px)` : 'none',
         }}
-      />
+      >
+        <div className="bg-blob blob-sky" />
+      </div>
+
       {/* Pink/Fuchsia Blob - Bottom Right */}
       <div
-        className="bg-blob blob-pink"
+        className="blob-wrapper"
         style={{
-          transform: `translate(${coords.x * 30}px, ${coords.y * 30}px)`,
+          transform: isDesktop ? `translate(${coords.x * 35}px, ${coords.y * 35}px)` : 'none',
         }}
-      />
+      >
+        <div className="bg-blob blob-pink" />
+      </div>
     </div>
   );
 }
