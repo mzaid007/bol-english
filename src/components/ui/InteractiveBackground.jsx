@@ -1,21 +1,26 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * High-Fidelity Google Antigravity Particle Vortex Background.
- * Renders particles swirling in a structural vortex where:
- * 1. Particles default to circular/spiral orbits around the vortex center.
- * 2. The cursor exerts a powerful Newtonian gravitational pull (attracting
- *    particles toward it with speed accumulation and slingshot orbits).
- * 3. Each particle's velocity vector dynamically determines its heading angle,
- *    aligning the dashes along their actual path of movement.
- * 4. Critical Fix: Velocity limits (capping speed) are applied to prevent 
- *    particles from building up extreme speed and escaping the viewport permanently.
- * 5. Screen boundary wrapping ensures that if any particle escapes due to gravity,
- *    it is gently wrapped back into the active screen canvas, maintaining density.
+ * Newtonian Gravitational Solar System Background.
+ * Renders a high-density asteroid field (5,000 particles) swirling in a vortex
+ * centered around a dynamically easing cursor (the Star/Sun).
+ * 
+ * Features:
+ * 1. The Sun (Cursor): Pulses a soft Solar Corona under the pointer.
+ * 2. 3 Orbiting Planets: Inner (Rose), Middle (Teal with Saturn-style rings), 
+ *    and Outer (Sky Blue), each leaving fading trails and exerting minor gravity
+ *    fields that deflect asteroid paths (planet wakes).
+ * 3. Gravitational Waves: Fast mouse sweeps release expanding ripples on the canvas,
+ *    pushing asteroid particles outward.
+ * 4. Performance Optimizations: Employs squared-distance range checks to bypass
+ *    unnecessary square-root computations, keeping 5,000 items buttery smooth.
  */
 export default function InteractiveBackground() {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -1000, y: -1000, active: false });
+  const lastMouseRef = useRef({ x: 0, y: 0, time: 0 });
+  const ripplesRef = useRef([]);
+  const systemCenterRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -30,6 +35,9 @@ export default function InteractiveBackground() {
 
     let centerX = width / 2;
     let centerY = height / 2;
+    
+    systemCenterRef.current.x = centerX;
+    systemCenterRef.current.y = centerY;
 
     const handleResize = () => {
       width = canvas.width = window.innerWidth;
@@ -39,9 +47,35 @@ export default function InteractiveBackground() {
     };
     window.addEventListener('resize', handleResize);
 
+    // Track mouse movement, speed, and spawn shockwaves on fast sweeps
     const handleMouseMove = (e) => {
-      mouseRef.current.x = e.clientX;
-      mouseRef.current.y = e.clientY;
+      const now = Date.now();
+      const mx = e.clientX;
+      const my = e.clientY;
+      
+      const dx = mx - lastMouseRef.current.x;
+      const dy = my - lastMouseRef.current.y;
+      const dt = now - lastMouseRef.current.time;
+
+      if (dt > 10) {
+        const speed = Math.sqrt(dx * dx + dy * dy) / dt; // pixels per ms
+        
+        // If cursor moves rapidly, release a gravitational ripple (max 3 concurrent ripples)
+        if (speed > 4.5 && ripplesRef.current.length < 3) {
+          ripplesRef.current.push({
+            x: mx,
+            y: my,
+            r: 0,
+            maxR: 320,
+            speed: 10,
+            intensity: 18,
+          });
+        }
+        lastMouseRef.current = { x: mx, y: my, time: now };
+      }
+
+      mouseRef.current.x = mx;
+      mouseRef.current.y = my;
       mouseRef.current.active = true;
     };
 
@@ -52,24 +86,68 @@ export default function InteractiveBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    // Generate 1200 physics-enabled particles
-    const particleCount = 1200;
+    // Initialize 3 orbiting planets with trails and rings
+    const planets = [
+      {
+        name: 'Inner',
+        color: 'rgba(244, 63, 94, 0.95)', // Rose/Ruby
+        mass: 8,
+        orbitRadius: 150,
+        angle: Math.random() * Math.PI * 2,
+        speed: 0.0035,
+        size: 5.5,
+        x: 0,
+        y: 0,
+        trail: [],
+        maxTrailLen: 12,
+      },
+      {
+        name: 'Middle',
+        color: 'rgba(20, 184, 166, 0.95)', // Teal Gas Giant
+        mass: 14,
+        orbitRadius: 280,
+        angle: Math.random() * Math.PI * 2,
+        speed: 0.002,
+        size: 8.5,
+        x: 0,
+        y: 0,
+        hasRing: true,
+        trail: [],
+        maxTrailLen: 22,
+      },
+      {
+        name: 'Outer',
+        color: 'rgba(14, 165, 233, 0.9)', // Ice Cyan Giant
+        mass: 22,
+        orbitRadius: 440,
+        angle: Math.random() * Math.PI * 2,
+        speed: 0.001,
+        size: 11,
+        x: 0,
+        y: 0,
+        trail: [],
+        maxTrailLen: 32,
+      }
+    ];
+
+    // High-density asteroid count (5,000 particles)
+    const particleCount = 5000;
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
       const maxDim = Math.max(width, height);
-      // Orbit radiuses starting from 25px out to 75% of viewport size
-      const radius = Math.random() * (maxDim * 0.75) + 25;
+      // Orbital radiuses scattered in a ring belt
+      const radius = Math.random() * (maxDim * 0.72) + 20;
       const angle = Math.random() * Math.PI * 2;
       
-      let color = 'rgba(37, 99, 235, 0.82)'; // Royal Blue
+      let color = 'rgba(37, 99, 235, 0.8)'; // Royal Blue
       const roll = Math.random();
       if (roll < 0.25) {
-        color = 'rgba(79, 70, 229, 0.8)'; // Indigo
+        color = 'rgba(79, 70, 229, 0.78)'; // Indigo
       } else if (roll < 0.45) {
-        color = 'rgba(124, 58, 237, 0.78)'; // Purple
+        color = 'rgba(124, 58, 237, 0.76)'; // Purple
       } else if (roll < 0.7) {
-        color = 'rgba(15, 23, 42, 0.52)'; // Slate Charcoal for contrast
+        color = 'rgba(15, 23, 42, 0.5)'; // Deep Slate for contrast
       }
 
       particles.push({
@@ -80,8 +158,8 @@ export default function InteractiveBackground() {
         radius,
         angle,
         speed: (0.0003 + Math.random() * 0.0006) * (radius < 350 ? 1.4 : 0.8),
-        length: 4 + Math.random() * 5.5,
-        thickness: 1.2 + Math.random() * 1.3,
+        length: 3 + Math.random() * 4.5,
+        thickness: 1.1 + Math.random() * 1.1,
         color,
         z: 0.35 + Math.random() * 0.65, // depth factor
       });
@@ -92,18 +170,103 @@ export default function InteractiveBackground() {
       ctx.clearRect(0, 0, width, height);
       
       const mouse = mouseRef.current;
+      const systemCenter = systemCenterRef.current;
+      const ripples = ripplesRef.current;
 
+      // 1. Interpolate Solar Center (Lagged follow of cursor or screen center)
+      const targetCenterX = mouse.active ? mouse.x : centerX;
+      const targetCenterY = mouse.active ? mouse.y : centerY;
+      systemCenter.x = systemCenter.x * 0.92 + targetCenterX * 0.08;
+      systemCenter.y = systemCenter.y * 0.92 + targetCenterY * 0.08;
+
+      // 2. Render Solar Corona (Pulsing halo under Sun cursor)
+      if (mouse.active) {
+        ctx.save();
+        const pulse = 22 + Math.sin(Date.now() * 0.004) * 4;
+        const radialGrad = ctx.createRadialGradient(
+          mouse.x, mouse.y, 0,
+          mouse.x, mouse.y, pulse + 25
+        );
+        radialGrad.addColorStop(0, 'rgba(59, 130, 246, 0.16)');
+        radialGrad.addColorStop(0.4, 'rgba(59, 130, 246, 0.08)');
+        radialGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        ctx.fillStyle = radialGrad;
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, pulse + 25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 3. Update & Paint Orbiting Planets
+      planets.forEach((p) => {
+        p.angle += p.speed;
+        p.x = systemCenter.x + Math.cos(p.angle) * p.orbitRadius;
+        p.y = systemCenter.y + Math.sin(p.angle) * p.orbitRadius;
+
+        // Record trail positions
+        p.trail.push({ x: p.x, y: p.y });
+        if (p.trail.length > p.maxTrailLen) p.trail.shift();
+
+        // Draw planet trail
+        ctx.beginPath();
+        for (let j = 0; j < p.trail.length; j++) {
+          const pt = p.trail[j];
+          if (j === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.strokeStyle = p.color.replace('0.95', '0.12').replace('0.9', '0.12');
+        ctx.lineWidth = p.size * 0.35;
+        ctx.stroke();
+
+        // Draw Middle Planet Saturn Ring
+        if (p.hasRing) {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(-Math.PI / 6);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size * 1.9, p.size * 0.48, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(20, 184, 166, 0.5)';
+          ctx.lineWidth = 2.2;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Draw Planet Body
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 4. Update & Render Gravitational Ripples (expanding wave lines)
+      for (let rIdx = ripples.length - 1; rIdx >= 0; rIdx--) {
+        const rip = ripples[rIdx];
+        rip.r += rip.speed;
+        if (rip.r > rip.maxR) {
+          ripples.splice(rIdx, 1);
+          continue;
+        }
+
+        const opacity = 0.14 * (1 - rip.r / rip.maxR);
+        ctx.strokeStyle = `rgba(59, 130, 246, ${opacity})`;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // 5. Update & Paint Asteroids
       for (let i = 0; i < particleCount; i++) {
         const p = particles[i];
 
-        // 1. Advance the particle's default orbital angle
+        // Advance orbital angle
         p.angle += p.speed;
 
-        // 2. Default target position in the background vortex
-        const targetX = centerX + Math.cos(p.angle) * p.radius;
-        const targetY = centerY + Math.sin(p.angle) * p.radius;
+        // Vortex path coordinates
+        const targetX = systemCenter.x + Math.cos(p.angle) * p.radius;
+        const targetY = systemCenter.y + Math.sin(p.angle) * p.radius;
 
-        // 3. Default velocity vector pointing towards the target vortex path
+        // Default vortex pull vectors
         const defaultVx = (targetX - p.x) * 0.055;
         const defaultVy = (targetY - p.y) * 0.055;
 
@@ -112,34 +275,66 @@ export default function InteractiveBackground() {
         let damping = 0.94;
         let returnWeight = 0.06;
 
-        // 4. Newtonian Gravity Force: F = G * m1 * m2 / r^2
+        // central gravity pull (only checks if cursor inside screen)
         if (mouse.active) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
           const distSqr = dx * dx + dy * dy;
-          const dist = Math.sqrt(distSqr);
 
-          if (dist > 5) {
-            // Strong Newtonian gravitational pull
-            const G = 1500 * p.z; 
+          // Optimization: Skip Math.sqrt for particles outside 480px gravity field (230400 sqr)
+          if (distSqr < 230400 && distSqr > 64) {
+            const dist = Math.sqrt(distSqr);
+            const G = 1800 * p.z; 
             const accel = G / (distSqr + 500);
-            ax = (dx / dist) * accel;
-            ay = (dy / dist) * accel;
+            ax += (dx / dist) * accel;
+            ay += (dy / dist) * accel;
 
-            // Swarm capturing: Damp velocities and reduce return weight near cursor
-            if (dist < 280) {
-              const ratio = dist / 280;
-              damping = 0.74 + ratio * 0.2;
-              returnWeight = 0.005 + ratio * 0.055;
+            // Swarm sticky capture when within 260px (67600 sqr)
+            if (distSqr < 67600) {
+              const ratio = dist / 260;
+              damping = 0.68 + ratio * 0.26;
+              returnWeight = 0.002 + ratio * 0.058;
             }
           }
         }
 
-        // 5. Apply blended physics
+        // Planet gravity pull: check deflection near our 3 planets
+        for (let k = 0; k < 3; k++) {
+          const pl = planets[k];
+          const pdx = pl.x - p.x;
+          const pdy = pl.y - p.y;
+          const pDistSqr = pdx * pdx + pdy * pdy;
+
+          // Planet deflection radius is 75px (5625 sqr)
+          if (pDistSqr < 5625 && pDistSqr > 36) {
+            const pDist = Math.sqrt(pDistSqr);
+            const G_planet = 160 * pl.mass * p.z;
+            const pAccel = G_planet / (pDistSqr + 120);
+            ax += (pdx / pDist) * pAccel;
+            ay += (pdy / pDist) * pAccel;
+          }
+        }
+
+        // Apply blended physics
         p.vx = (p.vx + ax) * damping + defaultVx * returnWeight;
         p.vy = (p.vy + ay) * damping + defaultVy * returnWeight;
 
-        // Velocity Speed Limiter: Caps maximum movement vector to keep particles bounded
+        // Gravitational Ripple Shockwave push force
+        for (let rIdx = 0; rIdx < ripples.length; rIdx++) {
+          const rip = ripples[rIdx];
+          const rdx = p.x - rip.x;
+          const rdy = p.y - rip.y;
+          const rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+          const rDiff = Math.abs(rDist - rip.r);
+
+          if (rDiff < 30) {
+            const force = (1 - rDiff / 30) * rip.intensity * (1 - rip.r / rip.maxR);
+            p.vx += (rdx / (rDist + 0.1)) * force * p.z * 0.18;
+            p.vy += (rdy / (rDist + 0.1)) * force * p.z * 0.18;
+          }
+        }
+
+        // Speed Limiter
         const maxSpeed = 16 * p.z;
         const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         if (speed > maxSpeed) {
@@ -147,23 +342,22 @@ export default function InteractiveBackground() {
           p.vy = (p.vy / speed) * maxSpeed;
         }
 
-        // 6. Update position
+        // Update positions
         p.x += p.vx;
         p.y += p.vy;
 
-        // Boundary Wrap-Around: If a particle shoots completely off-screen,
-        // wrap it around to the opposite side to maintain field density.
-        const margin = 50;
+        // Wrap boundaries
+        const margin = 40;
         if (p.x < -margin) { p.x = width + margin; p.vx *= -0.2; }
         else if (p.x > width + margin) { p.x = -margin; p.vx *= -0.2; }
         
         if (p.y < -margin) { p.y = height + margin; p.vy *= -0.2; }
         else if (p.y > height + margin) { p.y = -margin; p.vy *= -0.2; }
 
-        // 7. Heading vector along physical motion
+        // Dash heading vector along motion
         const heading = Math.atan2(p.vy, p.vx);
 
-        // 8. Paint particles
+        // Paint Asteroids
         ctx.lineWidth = p.thickness * p.z;
         ctx.strokeStyle = p.color;
         ctx.lineCap = 'round';
