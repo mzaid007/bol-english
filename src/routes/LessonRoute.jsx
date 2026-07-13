@@ -239,7 +239,7 @@ export default function LessonRoute() {
         </div>
 
         <div className="mb-24">
-          <QuestionBody question={quiz} speech={speech} onResolved={handleQuizResolved} />
+          <QuestionBody key={quizIndex} question={quiz} speech={speech} onResolved={handleQuizResolved} />
         </div>
 
         {isAnswered && (
