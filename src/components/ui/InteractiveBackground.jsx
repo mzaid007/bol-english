@@ -12,10 +12,14 @@ export default function InteractiveBackground() {
   useEffect(() => {
     const handleMouseMove = (e) => {
       // Once mouse movement is detected, enable the parallax calculations
-      if (!hasMouse) setHasMouse(true);
+      if (!hasMouse) {
+        console.log("InteractiveBackground: First mousemove detected! hasMouse => true");
+        setHasMouse(true);
+      }
       
       const x = (e.clientX / window.innerWidth) - 0.5;
       const y = (e.clientY / window.innerHeight) - 0.5;
+      console.log("InteractiveBackground: mousemove", { x, y });
       setCoords({ x, y });
     };
 
