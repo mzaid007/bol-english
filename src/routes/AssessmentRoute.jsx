@@ -96,7 +96,7 @@ export default function AssessmentRoute() {
       </div>
 
       {/* Interactive body */}
-      <div className="grow">
+      <div className="mb-24">
         <QuestionBody question={question} speech={speech} onResolved={handleResolved} />
       </div>
 

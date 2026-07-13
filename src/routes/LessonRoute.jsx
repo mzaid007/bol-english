@@ -234,7 +234,7 @@ export default function LessonRoute() {
           </h2>
         </div>
 
-        <div className="grow">
+        <div className="mb-24">
           <QuestionBody question={quiz} speech={speech} onResolved={handleQuizResolved} />
         </div>
 
