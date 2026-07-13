@@ -1,30 +1,27 @@
 import React, { useState, useEffect } from 'react';
 
 /**
- * Interactive Background with dual-layer animations:
- * 1. An outer wrapper that shifts with cursor movements (parallax vectors).
- * 2. An inner blob that slowly drifts using CSS keyframes (universal floating support, including mobile).
+ * Interactive Background with progressive mouse-detection:
+ * Activates mouse movement parallax tracking dynamically upon the first cursor movement,
+ * resolving compatibility issues on touchscreen-enabled Windows desktops.
  */
 export default function InteractiveBackground() {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [hasMouse, setHasMouse] = useState(false);
 
   useEffect(() => {
-    // Only capture coordinates on devices with cursor pointing capability
-    const media = window.matchMedia('(hover: hover) and (pointer: fine)');
-    setIsDesktop(media.matches);
-
     const handleMouseMove = (e) => {
+      // Once mouse movement is detected, enable the parallax calculations
+      if (!hasMouse) setHasMouse(true);
+      
       const x = (e.clientX / window.innerWidth) - 0.5;
       const y = (e.clientY / window.innerHeight) - 0.5;
       setCoords({ x, y });
     };
 
-    if (media.matches) {
-      window.addEventListener('mousemove', handleMouseMove);
-    }
+    window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [hasMouse]);
 
   return (
     <div className="interactive-bg" aria-hidden="true">
@@ -32,7 +29,7 @@ export default function InteractiveBackground() {
       <div
         className="blob-wrapper"
         style={{
-          transform: isDesktop ? `translate(${coords.x * 45}px, ${coords.y * 45}px)` : 'none',
+          transform: hasMouse ? `translate(${coords.x * 50}px, ${coords.y * 50}px)` : 'none',
         }}
       >
         <div className="bg-blob blob-indigo" />
@@ -42,7 +39,7 @@ export default function InteractiveBackground() {
       <div
         className="blob-wrapper"
         style={{
-          transform: isDesktop ? `translate(${coords.x * -70}px, ${coords.y * -70}px)` : 'none',
+          transform: hasMouse ? `translate(${coords.x * -75}px, ${coords.y * -75}px)` : 'none',
         }}
       >
         <div className="bg-blob blob-sky" />
@@ -52,7 +49,7 @@ export default function InteractiveBackground() {
       <div
         className="blob-wrapper"
         style={{
-          transform: isDesktop ? `translate(${coords.x * 35}px, ${coords.y * 35}px)` : 'none',
+          transform: hasMouse ? `translate(${coords.x * 40}px, ${coords.y * 40}px)` : 'none',
         }}
       >
         <div className="bg-blob blob-pink" />

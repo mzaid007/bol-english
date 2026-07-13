@@ -863,7 +863,7 @@
   width: 480px;
   height: 480px;
   background: radial-gradient(circle, rgba(99, 102, 241, 0.65) 0%, transparent 70%);
-  animation: floatSlowly-1 22s infinite alternate ease-in-out;
+  animation: floatSlowly-1 12s infinite alternate ease-in-out;
 }
 
 .blob-sky {
@@ -872,7 +872,7 @@
   width: 550px;
   height: 550px;
   background: radial-gradient(circle, rgba(14, 165, 233, 0.65) 0%, transparent 70%);
-  animation: floatSlowly-2 28s infinite alternate ease-in-out;
+  animation: floatSlowly-2 16s infinite alternate ease-in-out;
 }
 
 .blob-pink {
@@ -881,7 +881,7 @@
   width: 420px;
   height: 420px;
   background: radial-gradient(circle, rgba(217, 70, 239, 0.5) 0%, transparent 70%);
-  animation: floatSlowly-3 25s infinite alternate ease-in-out;
+  animation: floatSlowly-3 14s infinite alternate ease-in-out;
 }
 
 @keyframes floatSlowly-1 {
