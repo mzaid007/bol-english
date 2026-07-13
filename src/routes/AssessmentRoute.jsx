@@ -43,23 +43,16 @@ export default function AssessmentRoute() {
   }, [index]);
 
   const handleResolved = (correct) => {
-    console.log("AssessmentRoute: handleResolved triggered with correct =", correct);
-    if (isAnswered) {
-      console.log("AssessmentRoute: Already answered, skipping.");
-      return;
-    }
+    if (isAnswered) return; // guard against double resolve (e.g. speech effect)
     setIsCorrect(correct);
     setIsAnswered(true);
     if (correct) setScore((s) => s + 1);
     try {
       trackAnswer(correct);
-      console.log("AssessmentRoute: trackAnswer success");
     } catch (e) {
       console.warn("AssessmentRoute: Failed to track answer accuracy", e);
     }
   };
-
-  console.log("AssessmentRoute Render State:", { index, isAnswered, isCorrect, score });
 
   const next = () => {
     if (index < total - 1) {
