@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Newtonian Gravitational Swarm Background.
- * Renders 1200 particles swirling in a dense cosmic field.
- * The cursor acts as a massive gravity well: when particles draw near,
- * they decelerate (damped velocity) and suspend their default orbits to
- * cluster tightly around the cursor, forming a highly responsive physical swarm.
+ * High-Density Newtonian Gravitational Swarm Background.
+ * Renders 1500 physics-enabled particles in a cosmic field.
+ * 
+ * Implements an intense gravitational pull and deep damping when particles are near 
+ * the cursor, forcing them to decelerate rapidly and cluster tightly around the mouse 
+ * like a highly responsive organic swarm.
  */
 export default function InteractiveBackground() {
   const canvasRef = useRef(null);
@@ -46,16 +47,26 @@ export default function InteractiveBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
-    // Ultra-dense particle count (increased to 1200 for a rich, swarming dust cloud)
-    const particleCount = 1200;
+    // Highly dense swarm count (1500 particles)
+    const particleCount = 1500;
     const particles = [];
 
     for (let i = 0; i < particleCount; i++) {
       const maxDim = Math.max(width, height);
-      // Generate particles across a wide radius
-      const radius = Math.random() * (maxDim * 0.72) + 15;
+      const radius = Math.random() * (maxDim * 0.75) + 10;
       const angle = Math.random() * Math.PI * 2;
       
+      // Determine a rich, high-contrast color palette visible on light backgrounds
+      let color = 'rgba(37, 99, 235, 0.85)'; // Royal Blue (default)
+      const roll = Math.random();
+      if (roll < 0.25) {
+        color = 'rgba(79, 70, 229, 0.82)'; // Indigo
+      } else if (roll < 0.45) {
+        color = 'rgba(124, 58, 237, 0.8)'; // Purple
+      } else if (roll < 0.7) {
+        color = 'rgba(15, 23, 42, 0.55)'; // Deep Slate/Charcoal for contrast
+      }
+
       particles.push({
         x: centerX + Math.cos(angle) * radius,
         y: centerY + Math.sin(angle) * radius,
@@ -63,13 +74,11 @@ export default function InteractiveBackground() {
         vy: 0,
         radius,
         angle,
-        speed: (0.0003 + Math.random() * 0.0007) * (radius < 350 ? 1.4 : 0.8),
-        length: 3 + Math.random() * 5, // slightly shorter dashes for dense swarm cohesion
-        thickness: 1.1 + Math.random() * 1.2,
-        color: Math.random() > 0.45 
-          ? 'rgba(37, 99, 235, 0.72)' // Royal Blue particles
-          : 'rgba(30, 41, 59, 0.45)', // Slate Grey particles
-        z: 0.35 + Math.random() * 0.65, // Depth multiplier
+        speed: (0.0003 + Math.random() * 0.0006) * (radius < 350 ? 1.4 : 0.8),
+        length: 3.5 + Math.random() * 5.5, // dash length
+        thickness: 1.3 + Math.random() * 1.3, // dash thickness
+        color,
+        z: 0.35 + Math.random() * 0.65, // depth multiplier
       });
     }
 
@@ -89,15 +98,15 @@ export default function InteractiveBackground() {
         const targetY = centerY + Math.sin(p.angle) * p.radius;
 
         // 3. Default velocity vector pointing towards the target vortex path
-        const defaultVx = (targetX - p.x) * 0.05;
-        const defaultVy = (targetY - p.y) * 0.05;
+        const defaultVx = (targetX - p.x) * 0.055;
+        const defaultVy = (targetY - p.y) * 0.055;
 
         let ax = 0;
         let ay = 0;
         let damping = 0.94;
         let returnWeight = 0.06;
 
-        // 4. Newtonian Gravity Force with Dynamic Sticky-Damping
+        // 4. Newtonian Gravity Force with Dynamic Swarm Cohesion
         if (mouse.active) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
@@ -105,20 +114,20 @@ export default function InteractiveBackground() {
           const dist = Math.sqrt(distSqr);
 
           if (dist > 5) {
-            // Massive gravitational constants (G = 1600) to pull from far away
-            const G = 1600 * p.z; 
-            // Narrow softening factor (400) creates high acceleration near the center
-            const accel = G / (distSqr + 400);
+            // Massive gravitational pull (G = 2400) to capture distant particles
+            const G = 2400 * p.z; 
+            // Narrow softening factor (300) produces sharp, tight acceleration near the cursor
+            const accel = G / (distSqr + 300);
             ax = (dx / dist) * accel;
             ay = (dy / dist) * accel;
 
-            // Swarm Attraction Mechanism:
-            // When particles enter the cursor field (280px), we bleed their speed (damping)
-            // and reduce their return-to-orbit force (returnWeight) so they stay clustered.
+            // Swarm Attraction & Capture:
+            // When particles enter the cursor field (280px), we bleed their velocity (damping)
+            // and suppress their returning vortex force so they swarm directly on the cursor.
             if (dist < 280) {
               const ratio = dist / 280;
-              damping = 0.81 + ratio * 0.13;      // 0.81 at cursor center (heavy stickiness)
-              returnWeight = 0.008 + ratio * 0.052; // almost completely ignore default orbit near cursor
+              damping = 0.68 + ratio * 0.26;        // 0.68 at cursor center (extremely sticky)
+              returnWeight = 0.002 + ratio * 0.058;  // almost completely ignore default orbit near cursor
             }
           }
         }
