@@ -13,6 +13,8 @@ import DashboardRoute from './routes/DashboardRoute';
 import LessonRoute from './routes/LessonRoute';
 import ProfileRoute from './routes/ProfileRoute';
 
+import { InteractiveBackground } from './components/ui';
+
 function Layout() {
   return (
     <>
@@ -30,6 +32,7 @@ export default function App() {
     <ToastProvider>
       <AppProvider>
         <BrowserRouter>
+          <InteractiveBackground />
           <Routes>
             {/* Public/Onboarding route */}
             <Route path="/onboarding" element={<OnboardingRoute />} />
