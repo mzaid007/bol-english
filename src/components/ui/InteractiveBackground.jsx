@@ -219,9 +219,9 @@ export default function InteractiveBackground() {
       }
     ];
 
-    // Low-density soft particles configuration (bubbles & stars)
+    // Moderate-density soft particles configuration (bubbles & stars)
     const isMobile = width < 768;
-    const particleCount = isMobile ? 80 : 200;
+    const particleCount = isMobile ? 120 : 300;
     const particles = [];
 
     // Soft palette for floaters
