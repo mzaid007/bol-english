@@ -1,26 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Newtonian Gravitational Solar System Background.
- * Renders a high-density asteroid field (5,000 particles) swirling in a vortex
- * centered around a dynamically easing gravity well (mouse cursor or touch finger).
+ * Newtonian Gravitational Solar System Background (Redesigned for premium aesthetics).
+ * Renders floating bubbles and twinkling stars swirling in a gravity-well vortex,
+ * responsive to mouse clicks, mouse moves, and touch taps.
  * 
- * Features:
- * 1. Gravity Center (Cursor & Touch): Mouse cursor or finger touch drag acts as the Sun,
- *    attracting all planets and asteroids.
- * 2. Mobile Touch Integration: Captures touchstart, touchmove, and touchend coordinates
- *    to make the canvas fully interactive and responsive to mobile swipes and drags.
- * 3. 3 Orbiting Planets: Inner (Rose), Middle (Teal with Saturn-style rings), 
- *    and Outer (Sky Blue), each leaving fading trails and deflecting asteroids (wakes).
- * 4. Gravitational Waves: Fast sweeps/swipes release expanding ripples, pushing asteroids.
- * 5. Performance Optimizations: Employs squared-distance range checks to bypass
- *    unnecessary square-root computations, keeping 5,000 items buttery smooth on mobile chips.
+ * Improvements:
+ * 1. Soft Circular Bubbles & Stars: Replaces sharp dark dashes with gentle, breathing shapes.
+ * 2. Playful Burst Particles: Taps/clicks spawn a brief splash of expanding bubbles.
+ * 3. Dynamic Scaling: Planet orbits scale relative to viewport width, preventing off-screen loss on mobile.
+ * 4. Lower Density: Count reduced (200 desktop, 80 mobile) to prevent clutter and preserve readability.
  */
 export default function InteractiveBackground() {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -1000, y: -1000, active: false });
   const lastMouseRef = useRef({ x: 0, y: 0, time: 0 });
   const ripplesRef = useRef([]);
+  const burstParticlesRef = useRef([]);
   const systemCenterRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
@@ -48,6 +44,36 @@ export default function InteractiveBackground() {
     };
     window.addEventListener('resize', handleResize);
 
+    // Click/Touch particle burst emitter
+    const spawnBurst = (x, y) => {
+      const count = 12 + Math.floor(Math.random() * 8);
+      const colorOptions = [
+        'rgba(99, 102, 241, OPACITY)', // Soft Indigo
+        'rgba(45, 212, 191, OPACITY)',  // Soft Teal
+        'rgba(251, 113, 133, OPACITY)', // Soft Rose
+        'rgba(251, 191, 36, OPACITY)',  // Warm Amber
+        'rgba(167, 139, 250, OPACITY)', // Soft Lavender
+      ];
+
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.0 + Math.random() * 3.0;
+        const size = 3 + Math.random() * 5;
+        const color = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+        
+        burstParticlesRef.current.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size,
+          life: 1.0,
+          decay: 0.02 + Math.random() * 0.02,
+          color,
+        });
+      }
+    };
+
     // Track mouse inputs
     const handleMouseMove = (e) => {
       const now = Date.now();
@@ -65,9 +91,9 @@ export default function InteractiveBackground() {
             x: mx,
             y: my,
             r: 0,
-            maxR: 320,
-            speed: 10,
-            intensity: 18,
+            maxR: 260,
+            speed: 8,
+            intensity: 12,
           });
         }
         lastMouseRef.current = { x: mx, y: my, time: now };
@@ -76,6 +102,10 @@ export default function InteractiveBackground() {
       mouseRef.current.x = mx;
       mouseRef.current.y = my;
       mouseRef.current.active = true;
+    };
+
+    const handleMouseDown = (e) => {
+      spawnBurst(e.clientX, e.clientY);
     };
 
     const handleMouseLeave = () => {
@@ -91,6 +121,8 @@ export default function InteractiveBackground() {
         mouseRef.current.y = my;
         mouseRef.current.active = true;
         lastMouseRef.current = { x: mx, y: my, time: Date.now() };
+        
+        spawnBurst(mx, my);
       }
     };
 
@@ -106,16 +138,19 @@ export default function InteractiveBackground() {
 
         if (dt > 10) {
           const speed = Math.sqrt(dx * dx + dy * dy) / dt;
-          // Spawn smaller, fast shockwaves for mobile drags
           if (speed > 4.0 && ripplesRef.current.length < 2) {
             ripplesRef.current.push({
               x: mx,
               y: my,
               r: 0,
-              maxR: 240,
-              speed: 9,
-              intensity: 15,
+              maxR: 180,
+              speed: 7,
+              intensity: 10,
             });
+            // Occasional drag bubble bubbles
+            if (Math.random() < 0.3) {
+              spawnBurst(mx, my);
+            }
           }
           lastMouseRef.current = { x: mx, y: my, time: now };
         }
@@ -131,21 +166,22 @@ export default function InteractiveBackground() {
     };
 
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mouseleave', handleMouseLeave);
     
-    // Add touch support (passive: true ensures page scrolling stays responsive)
+    // Touch support
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('touchcancel', handleTouchEnd);
 
-    // Initialize 3 orbiting planets
+    // Orbiting planets (Radii will be scaled dynamically inside render)
     const planets = [
       {
         name: 'Inner',
         color: 'rgba(244, 63, 94, 0.95)', // Rose
         mass: 8,
-        orbitRadius: 130, // closer orbits for mobile layouts
+        orbitRadius: 100,
         angle: Math.random() * Math.PI * 2,
         speed: 0.0035,
         size: 5.2,
@@ -158,10 +194,10 @@ export default function InteractiveBackground() {
         name: 'Middle',
         color: 'rgba(20, 184, 166, 0.95)', // Teal
         mass: 14,
-        orbitRadius: 240,
+        orbitRadius: 180,
         angle: Math.random() * Math.PI * 2,
         speed: 0.002,
-        size: 8.0,
+        size: 7.5,
         x: 0,
         y: 0,
         hasRing: true,
@@ -172,10 +208,10 @@ export default function InteractiveBackground() {
         name: 'Outer',
         color: 'rgba(14, 165, 233, 0.9)', // Sky Blue
         mass: 22,
-        orbitRadius: 380,
+        orbitRadius: 280,
         angle: Math.random() * Math.PI * 2,
         speed: 0.001,
-        size: 10.5,
+        size: 10.0,
         x: 0,
         y: 0,
         trail: [],
@@ -183,25 +219,26 @@ export default function InteractiveBackground() {
       }
     ];
 
-    // Set particle count dynamically: 1200 on mobile viewports (<768px), 5000 on desktop
+    // Low-density soft particles configuration (bubbles & stars)
     const isMobile = width < 768;
-    const particleCount = isMobile ? 1200 : 5000;
+    const particleCount = isMobile ? 80 : 200;
     const particles = [];
+
+    // Soft palette for floaters
+    const floaterColors = [
+      'rgba(99, 102, 241, OPACITY)', // Soft Indigo
+      'rgba(45, 212, 191, OPACITY)',  // Soft Teal
+      'rgba(251, 113, 133, OPACITY)', // Soft Rose
+      'rgba(251, 191, 36, OPACITY)',  // Warm Amber
+      'rgba(167, 139, 250, OPACITY)', // Soft Lavender
+    ];
 
     for (let i = 0; i < particleCount; i++) {
       const maxDim = Math.max(width, height);
-      const radius = Math.random() * (maxDim * 0.72) + 20;
+      // Keep floaters slightly dispersed from very close orbits to avoid center crowding
+      const radius = Math.random() * (maxDim * 0.72) + 30;
       const angle = Math.random() * Math.PI * 2;
-      
-      let color = 'rgba(37, 99, 235, 0.8)'; // Royal Blue
-      const roll = Math.random();
-      if (roll < 0.25) {
-        color = 'rgba(79, 70, 229, 0.78)';
-      } else if (roll < 0.45) {
-        color = 'rgba(124, 58, 237, 0.76)';
-      } else if (roll < 0.7) {
-        color = 'rgba(15, 23, 42, 0.5)';
-      }
+      const color = floaterColors[Math.floor(Math.random() * floaterColors.length)];
 
       particles.push({
         x: centerX + Math.cos(angle) * radius,
@@ -210,11 +247,14 @@ export default function InteractiveBackground() {
         vy: 0,
         radius,
         angle,
-        speed: (0.0003 + Math.random() * 0.0006) * (radius < 350 ? 1.4 : 0.8),
-        length: 3 + Math.random() * 4.5,
-        thickness: 1.1 + Math.random() * 1.1,
+        speed: (0.0002 + Math.random() * 0.0004) * (radius < 350 ? 1.3 : 0.8),
+        size: 3 + Math.random() * 7, // Bubble radius or star arm length
+        thickness: 1.0 + Math.random() * 1.0,
         color,
         z: 0.35 + Math.random() * 0.65,
+        isStar: Math.random() < 0.25, // 25% twinkling stars, 75% soft bubbles
+        pulseSpeed: 0.8 + Math.random() * 1.5,
+        pulsePhase: Math.random() * Math.PI * 2,
       });
     }
 
@@ -235,23 +275,28 @@ export default function InteractiveBackground() {
       // 2. Render Solar Corona
       if (mouse.active) {
         ctx.save();
-        const pulse = 20 + Math.sin(Date.now() * 0.004) * 3.5;
+        const pulse = 15 + Math.sin(Date.now() * 0.004) * 2.5;
         const radialGrad = ctx.createRadialGradient(
           mouse.x, mouse.y, 0,
-          mouse.x, mouse.y, pulse + 22
+          mouse.x, mouse.y, pulse + 15
         );
-        radialGrad.addColorStop(0, 'rgba(59, 130, 246, 0.16)');
-        radialGrad.addColorStop(0.4, 'rgba(59, 130, 246, 0.08)');
-        radialGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        radialGrad.addColorStop(0, 'rgba(99, 102, 241, 0.12)');
+        radialGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.06)');
+        radialGrad.addColorStop(1, 'rgba(99, 102, 241, 0)');
         ctx.fillStyle = radialGrad;
         ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, pulse + 22, 0, Math.PI * 2);
+        ctx.arc(mouse.x, mouse.y, pulse + 15, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
 
-      // 3. Update & Paint Orbiting Planets
-      planets.forEach((p) => {
+      // 3. Update & Paint Orbiting Planets (Responsive scaling)
+      planets.forEach((p, idx) => {
+        // Dynamically scale orbit radii based on viewport size
+        if (idx === 0) p.orbitRadius = Math.max(60, width * 0.14);
+        else if (idx === 1) p.orbitRadius = Math.max(110, width * 0.26);
+        else p.orbitRadius = Math.max(160, width * 0.38);
+
         p.angle += p.speed;
         p.x = systemCenter.x + Math.cos(p.angle) * p.orbitRadius;
         p.y = systemCenter.y + Math.sin(p.angle) * p.orbitRadius;
@@ -267,7 +312,7 @@ export default function InteractiveBackground() {
           if (j === 0) ctx.moveTo(pt.x, pt.y);
           else ctx.lineTo(pt.x, pt.y);
         }
-        ctx.strokeStyle = p.color.replace('0.95', '0.12').replace('0.9', '0.12');
+        ctx.strokeStyle = p.color.replace('0.95', '0.08').replace('0.9', '0.08');
         ctx.lineWidth = p.size * 0.35;
         ctx.stroke();
 
@@ -277,21 +322,21 @@ export default function InteractiveBackground() {
           ctx.translate(p.x, p.y);
           ctx.rotate(-Math.PI / 6);
           ctx.beginPath();
-          ctx.ellipse(0, 0, p.size * 1.9, p.size * 0.48, 0, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(20, 184, 166, 0.5)';
-          ctx.lineWidth = 2.2;
+          ctx.ellipse(0, 0, p.size * 1.8, p.size * 0.45, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(20, 184, 166, 0.35)';
+          ctx.lineWidth = 1.8;
           ctx.stroke();
           ctx.restore();
         }
 
         // Draw bodies
-        ctx.fillStyle = p.color;
+        ctx.fillStyle = p.color.replace('0.95', '0.7').replace('0.9', '0.7'); // make slightly translucent
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // 4. Update & Render ripples
+      // 4. Update & Render expanding ripples (waves)
       for (let rIdx = ripples.length - 1; rIdx >= 0; rIdx--) {
         const rip = ripples[rIdx];
         rip.r += rip.speed;
@@ -300,15 +345,38 @@ export default function InteractiveBackground() {
           continue;
         }
 
-        const opacity = 0.14 * (1 - rip.r / rip.maxR);
-        ctx.strokeStyle = `rgba(59, 130, 246, ${opacity})`;
-        ctx.lineWidth = 1.8;
+        const opacity = 0.08 * (1 - rip.r / rip.maxR);
+        ctx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // 5. Update & Paint Asteroids
+      // 5. Update & Paint Click/Touch Burst Particles
+      const burstParticles = burstParticlesRef.current;
+      for (let bIdx = burstParticles.length - 1; bIdx >= 0; bIdx--) {
+        const bp = burstParticles[bIdx];
+        bp.x += bp.vx;
+        bp.y += bp.vy;
+        bp.vx *= 0.96; // air resistance
+        bp.vy *= 0.96;
+        bp.life -= bp.decay;
+
+        if (bp.life <= 0) {
+          burstParticles.splice(bIdx, 1);
+          continue;
+        }
+
+        // Render burst particle
+        const opacity = (bp.life * 0.45).toFixed(3);
+        ctx.fillStyle = bp.color.replace('OPACITY', opacity);
+        ctx.beginPath();
+        ctx.arc(bp.x, bp.y, bp.size * bp.life, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 6. Update & Paint Ambient Particles (bubbles & stars)
       for (let i = 0; i < particleCount; i++) {
         const p = particles[i];
 
@@ -325,44 +393,44 @@ export default function InteractiveBackground() {
         let damping = 0.94;
         let returnWeight = 0.06;
 
+        // Mouse attraction
         if (mouse.active) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
           const distSqr = dx * dx + dy * dy;
 
-          if (distSqr < 230400 && distSqr > 64) {
+          if (distSqr < 200000 && distSqr > 64) {
             const dist = Math.sqrt(distSqr);
-            const G = 1800 * p.z; 
+            const G = 1500 * p.z; 
             const accel = G / (distSqr + 500);
             ax += (dx / dist) * accel;
             ay += (dy / dist) * accel;
 
-            if (distSqr < 67600) {
-              const ratio = dist / 260;
-              damping = 0.68 + ratio * 0.26;
-              returnWeight = 0.002 + ratio * 0.058;
+            if (distSqr < 60000) {
+              const ratio = dist / 245;
+              damping = 0.70 + ratio * 0.24;
+              returnWeight = 0.005 + ratio * 0.055;
             }
           }
         }
 
+        // Planet deflection wakes
         for (let k = 0; k < 3; k++) {
           const pl = planets[k];
           const pdx = pl.x - p.x;
           const pdy = pl.y - p.y;
           const pDistSqr = pdx * pdx + pdy * pdy;
 
-          if (pDistSqr < 5625 && pDistSqr > 36) {
+          if (pDistSqr < 4900 && pDistSqr > 36) {
             const pDist = Math.sqrt(pDistSqr);
-            const G_planet = 160 * pl.mass * p.z;
-            const pAccel = G_planet / (pDistSqr + 120);
+            const G_planet = 120 * pl.mass * p.z;
+            const pAccel = G_planet / (pDistSqr + 100);
             ax += (pdx / pDist) * pAccel;
             ay += (pdy / pDist) * pAccel;
           }
         }
 
-        p.vx = (p.vx + ax) * damping + defaultVx * returnWeight;
-        p.vy = (p.vy + ay) * damping + defaultVy * returnWeight;
-
+        // Ripple pushing forces
         for (let rIdx = 0; rIdx < ripples.length; rIdx++) {
           const rip = ripples[rIdx];
           const rdx = p.x - rip.x;
@@ -377,7 +445,7 @@ export default function InteractiveBackground() {
           }
         }
 
-        const maxSpeed = 16 * p.z;
+        const maxSpeed = 14 * p.z;
         const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         if (speed > maxSpeed) {
           p.vx = (p.vx / speed) * maxSpeed;
@@ -387,6 +455,7 @@ export default function InteractiveBackground() {
         p.x += p.vx;
         p.y += p.vy;
 
+        // Wrap boundaries
         const margin = 40;
         if (p.x < -margin) { p.x = width + margin; p.vx *= -0.2; }
         else if (p.x > width + margin) { p.x = -margin; p.vx *= -0.2; }
@@ -394,18 +463,34 @@ export default function InteractiveBackground() {
         if (p.y < -margin) { p.y = height + margin; p.vy *= -0.2; }
         else if (p.y > height + margin) { p.y = -margin; p.vy *= -0.2; }
 
-        const heading = Math.atan2(p.vy, p.vx);
+        p.vx = (p.vx + ax) * damping + defaultVx * returnWeight;
+        p.vy = (p.vy + ay) * damping + defaultVy * returnWeight;
 
-        ctx.lineWidth = p.thickness * p.z;
-        ctx.strokeStyle = p.color;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(
-          p.x + Math.cos(heading) * p.length * p.z,
-          p.y + Math.sin(heading) * p.length * p.z
-        );
-        ctx.stroke();
+        // Dynamic pulsing opacity calculations (highly translucent)
+        const currentOpacity = (0.05 + Math.sin(Date.now() * 0.001 * p.pulseSpeed + p.pulsePhase) * 0.04) * p.z;
+        const drawOpacity = Math.max(0.015, Math.min(0.18, currentOpacity));
+
+        if (p.isStar) {
+          // Render twinkling star (small cross)
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle * 0.15); // gentle spin
+          ctx.strokeStyle = p.color.replace('OPACITY', drawOpacity.toFixed(3));
+          ctx.lineWidth = p.thickness * p.z;
+          ctx.beginPath();
+          ctx.moveTo(-p.size, 0);
+          ctx.lineTo(p.size, 0);
+          ctx.moveTo(0, -p.size);
+          ctx.lineTo(0, p.size);
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          // Render soft floating bubble
+          ctx.fillStyle = p.color.replace('OPACITY', drawOpacity.toFixed(3));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * p.z, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       animationId = requestAnimationFrame(render);
@@ -417,6 +502,7 @@ export default function InteractiveBackground() {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseleave', handleMouseLeave);
       
       window.removeEventListener('touchstart', handleTouchStart);
