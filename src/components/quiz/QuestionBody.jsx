@@ -15,8 +15,9 @@ import SpeechQuestion from './SpeechQuestion';
  *  - question: the question object from curriculum.js
  *  - speech:   the shared useSpeech() instance (required for listening/speech types)
  *  - onResolved: (isCorrect) => void
+ *  - accent:   current active pronunciation accent ('IN' | 'US' | 'UK')
  */
-export default function QuestionBody({ question, speech, onResolved }) {
+export default function QuestionBody({ question, speech, onResolved, accent = "US" }) {
   if (!question) return null;
 
   switch (question.type) {
@@ -49,6 +50,7 @@ export default function QuestionBody({ question, speech, onResolved }) {
           onResolved={onResolved}
           speak={speech?.speak}
           isSpeaking={speech?.isSpeaking}
+          accent={accent}
         />
       );
 
@@ -56,8 +58,10 @@ export default function QuestionBody({ question, speech, onResolved }) {
       return (
         <SpeechQuestion
           speechText={question.speechText}
+          phoneticHindi={question.phoneticHindi}
           onResolved={onResolved}
           speech={speech}
+          accent={accent}
         />
       );
 

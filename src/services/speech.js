@@ -1,7 +1,7 @@
 // Speech Service utilizing browser-native Web Speech API (SpeechSynthesis & SpeechRecognition)
 
-// 1. Text-To-Speech (TTS) Wrapper
-export const speakEnglish = (text, rate = 0.9) => {
+// 1. Text-To-Speech (TTS) Wrapper supporting dynamic accents
+export const speakEnglish = (text, rate = 0.9, accent = "US") => {
   return new Promise((resolve) => {
     if (!window.speechSynthesis) {
       console.warn("Speech Synthesis is not supported in this browser.");
@@ -13,17 +13,35 @@ export const speakEnglish = (text, rate = 0.9) => {
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = rate; // slightly slower for language learners
-
-    // Try to find a high-quality native English voice
-    const voices = window.speechSynthesis.getVoices();
-    const enVoice = voices.find(
-      (v) => v.lang.startsWith("en-US") && v.name.includes("Google")
-    ) || voices.find((v) => v.lang.startsWith("en"));
     
-    if (enVoice) {
-      utterance.voice = enVoice;
+    let targetLang = "en-US";
+    if (accent === "UK") targetLang = "en-GB";
+    else if (accent === "IN") targetLang = "en-IN";
+    
+    utterance.lang = targetLang;
+    utterance.rate = rate;
+
+    // Try to find a high-quality native English voice matching the accent
+    const voices = window.speechSynthesis.getVoices();
+    
+    let selectedVoice = voices.find(
+      (v) => v.lang.toLowerCase() === targetLang.toLowerCase() && v.name.includes("Google")
+    ) || voices.find(
+      (v) => v.lang.toLowerCase() === targetLang.toLowerCase()
+    );
+
+    // Fallback if the specific accent voice is missing on this OS
+    if (!selectedVoice) {
+      const targetPrefix = targetLang.split("-")[0].toLowerCase();
+      selectedVoice = voices.find(
+        (v) => v.lang.toLowerCase().startsWith(targetPrefix) && v.name.includes("Google")
+      ) || voices.find(
+        (v) => v.lang.toLowerCase().startsWith(targetPrefix)
+      );
+    }
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
 
     utterance.onend = () => resolve(true);

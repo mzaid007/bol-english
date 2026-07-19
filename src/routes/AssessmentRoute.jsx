@@ -99,9 +99,8 @@ export default function AssessmentRoute() {
         )}
       </div>
 
-      {/* Interactive body */}
       <div className="mb-24">
-        <QuestionBody key={question.id} question={question} speech={speech} onResolved={handleResolved} />
+        <QuestionBody key={question.id} question={question} speech={speech} onResolved={handleResolved} accent="IN" />
       </div>
 
       {/* Feedback + next */}
@@ -115,7 +114,7 @@ export default function AssessmentRoute() {
             {hasEnglishText(ansStr) && (
               <div className="mt-8 row gap-6 text-xs bold secondary items-center" style={{ flexWrap: 'wrap' }}>
                 <span>सही उत्तर: <strong>{ansStr}</strong></span>
-                <SpeakButton text={ansStr} />
+                <SpeakButton text={ansStr} accent="IN" />
               </div>
             )}
           </div>

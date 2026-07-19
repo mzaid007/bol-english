@@ -7,10 +7,12 @@ import Button from '../ui/Button';
  *
  * props:
  *  - speechText: string
+ *  - phoneticHindi: string (optional pronunciation hint)
  *  - onResolved: (isCorrect, result) => void
  *  - speech: object from useSpeech()
+ *  - accent: string ('IN' | 'US' | 'UK')
  */
-export default function SpeechQuestion({ speechText, onResolved, speech }) {
+export default function SpeechQuestion({ speechText, phoneticHindi, onResolved, speech, accent = "US" }) {
   const {
     sttSupported,
     isListening,
@@ -51,15 +53,45 @@ export default function SpeechQuestion({ speechText, onResolved, speech }) {
         <div style={{ fontSize: '21px', fontWeight: 700, color: 'var(--accent)', marginBottom: 6 }}>
           {speechText}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="btn-auto"
-          onClick={() => speak?.(speechText, 0.85)}
-          disabled={isSpeaking}
-        >
-          {isSpeaking ? 'बोल रहा है...' : '🔊 सुनें'}
-        </Button>
+        
+        {/* Phonetic Pronunciation Guide */}
+        {phoneticHindi && (
+          <div 
+            className="text-xs secondary mb-12 hindi-text" 
+            style={{ 
+              fontSize: 13, 
+              background: 'var(--surface-2)', 
+              padding: '6px 12px', 
+              borderRadius: 'var(--radius-sm)', 
+              border: '1px solid var(--border)',
+              display: 'inline-block'
+            }}
+          >
+            उच्चारण (Pronunciation): <strong>"{phoneticHindi}"</strong>
+          </div>
+        )}
+
+        <div className="row gap-8 justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="btn-auto"
+            onClick={() => speak?.(speechText, 0.85, accent)}
+            disabled={isSpeaking}
+          >
+            {isSpeaking ? 'बोल रहा है...' : '🔊 सुनें'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="btn-auto"
+            onClick={() => speak?.(speechText, 0.60, accent)}
+            disabled={isSpeaking}
+            style={{ background: 'var(--surface-3)', border: '1px solid var(--border)' }}
+          >
+            🐢 धीमे सुनें
+          </Button>
+        </div>
       </div>
 
       {sttSupported ? (

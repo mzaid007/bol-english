@@ -13,6 +13,45 @@ const LEVEL_LABELS = {
   advanced: { text: 'उच्च (Advanced)', class: 'advanced' },
 };
 
+const GOAL_RECOMMENDATIONS = {
+  career: {
+    title: "नौकरी और व्यवसाय मार्ग (Career & Job Pathway)",
+    desc: "इंटरव्यू और ऑफिस में संवाद करने के लिए ये पाठ सबसे महत्वपूर्ण हैं:",
+    lessons: [
+      { id: "b3", title: "Introducing Yourself", level: "beginner" },
+      { id: "a1", title: "Job Interview", level: "advanced" },
+      { id: "a5", title: "Public Speaking", level: "advanced" }
+    ]
+  },
+  speaking: {
+    title: "दैनिक बोलचाल मार्ग (Daily Conversation Pathway)",
+    desc: "दूसरों से बातचीत शुरू करने और अंग्रेजी बोलने का डर दूर करने के लिए:",
+    lessons: [
+      { id: "b2", title: "Greetings & Manners", level: "beginner" },
+      { id: "b3", title: "Introducing Yourself", level: "beginner" },
+      { id: "i1", title: "At a Restaurant", level: "intermediate" }
+    ]
+  },
+  travel: {
+    title: "यात्रा और घूमना मार्ग (Travel Pathway)",
+    desc: "सफर के दौरान सवाल पूछने, ऑर्डर देने और दिशा पूछने के लिए:",
+    lessons: [
+      { id: "i1", title: "At a Restaurant", level: "intermediate" },
+      { id: "i2", title: "Asking for Directions", level: "intermediate" },
+      { id: "a4", title: "Conversational Idioms", level: "advanced" }
+    ]
+  },
+  education: {
+    title: "शिक्षा और परीक्षा मार्ग (Education Pathway)",
+    desc: "बुनियादी ग्रामर और सवालों की संरचना मजबूत करने के लिए:",
+    lessons: [
+      { id: "b1", title: "Alphabet & Words", level: "beginner" },
+      { id: "i3", title: "Tenses in Daily Life", level: "intermediate" },
+      { id: "i5", title: "Asking Questions", level: "intermediate" }
+    ]
+  }
+};
+
 export default function DashboardRoute() {
   const navigate = useNavigate();
   const { profile, progress } = useApp();
@@ -49,6 +88,51 @@ export default function DashboardRoute() {
           <StatChip icon="✅">{progress.completedLessons.length} Completed</StatChip>
         </div>
       </Card>
+
+      {/* Goal Pathway Recommendation Card */}
+      {profile.goal && GOAL_RECOMMENDATIONS[profile.goal] && (
+        <Card className="mb-20" style={{ borderLeft: '4px solid var(--accent)', background: 'var(--accent-soft)' }}>
+          <p className="bold text-xs secondary mb-4 uppercase tracking-wider" style={{ color: 'var(--accent)', fontSize: 10 }}>
+            🎯 आपके लक्ष्य के लिए अनुशंसित (Recommended for Your Goal)
+          </p>
+          <h3 className="text-sm bold mb-6" style={{ color: 'var(--text)' }}>
+            {GOAL_RECOMMENDATIONS[profile.goal].title}
+          </h3>
+          <p className="text-xs text-secondary mb-12 hindi-text" style={{ fontSize: 13, lineHeight: 1.4 }}>
+            {GOAL_RECOMMENDATIONS[profile.goal].desc}
+          </p>
+          <div className="row gap-8 flex-wrap">
+            {GOAL_RECOMMENDATIONS[profile.goal].lessons.map((rec) => {
+              const isDone = progress.completedLessons.includes(rec.id);
+              return (
+                <button
+                  key={rec.id}
+                  onClick={() => {
+                    setActiveTab(rec.level);
+                    navigate(`/lesson/${rec.id}`);
+                  }}
+                  className="btn-icon"
+                  style={{
+                    padding: '8px 12px',
+                    fontSize: 12,
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    color: isDone ? 'var(--success)' : 'var(--text)',
+                  }}
+                >
+                  <span>{isDone ? '✅' : '📖'}</span>
+                  <span>{rec.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* Tabs */}
       <div className="dashboard-tabs">

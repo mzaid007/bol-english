@@ -9,8 +9,9 @@ import React, { useState } from 'react';
  *  - options: string[]
  *  - correctAnswer: string
  *  - onResolved: (isCorrect) => void
- *  - speak: (text, rate) => Promise   from useSpeech()
+ *  - speak: (text, rate, accent) => Promise   from useSpeech()
  *  - isSpeaking: boolean
+ *  - accent: string ('IN' | 'US' | 'UK')
  */
 export default function ListeningQuestion({
   audioText,
@@ -19,11 +20,13 @@ export default function ListeningQuestion({
   onResolved,
   speak,
   isSpeaking,
+  accent = "US"
 }) {
   const [selected, setSelected] = useState(null);
   const answered = selected !== null;
 
-  const play = () => { if (!isSpeaking) speak?.(audioText, 0.85); };
+  const play = () => { if (!isSpeaking) speak?.(audioText, 0.85, accent); };
+  const playSlow = () => { if (!isSpeaking) speak?.(audioText, 0.60, accent); };
 
   const handlePick = (option) => {
     if (answered) return;
@@ -40,18 +43,30 @@ export default function ListeningQuestion({
 
   return (
     <div>
-      <div className="row" style={{ justifyContent: 'center', margin: '8px 0 20px' }}>
+      <div className="row gap-16" style={{ justifyContent: 'center', margin: '8px 0 20px' }}>
         <button
           type="button"
           className={`audio-pulse-btn ${isSpeaking ? 'playing' : ''}`}
           onClick={play}
           disabled={isSpeaking}
+          title="सामान्य गति (Normal Speed)"
           aria-label="वाक्य सुनें (Play audio)"
         >
           🔊
         </button>
+        <button
+          type="button"
+          className={`audio-pulse-btn ${isSpeaking ? 'playing' : ''}`}
+          onClick={playSlow}
+          disabled={isSpeaking}
+          style={{ background: 'var(--surface-3)', border: '1px solid var(--border)' }}
+          title="धीमी गति (Slow Speed)"
+          aria-label="धीमे वाक्य सुनें (Play slow audio)"
+        >
+          🐢
+        </button>
       </div>
-      <p className="center text-xs muted mb-16">ऊपर बटन दबाकर वाक्य सुनें</p>
+      <p className="center text-xs muted mb-16">सामान्य गति (🔊) या धीमी गति (🐢) में वाक्य सुनें</p>
 
       <div className="selector-list">
         {options.map((option, idx) => (

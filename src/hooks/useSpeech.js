@@ -35,10 +35,10 @@ export function useSpeech() {
     };
   }, []);
 
-  const speak = useCallback(async (text, rate = 0.9) => {
+  const speak = useCallback(async (text, rate = 0.9, accent = "US") => {
     if (!ttsSupported || isSpeaking) return;
     setIsSpeaking(true);
-    await speakEnglish(text, rate);
+    await speakEnglish(text, rate, accent);
     setIsSpeaking(false);
   }, [ttsSupported, isSpeaking]);
 

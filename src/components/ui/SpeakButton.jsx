@@ -4,15 +4,19 @@ import { speakEnglish } from '../../services/speech';
 /**
  * Reusable icon button to read any English phrase aloud.
  * Helps Hindi medium students instantly hear correct pronunciation.
+ *
+ * props:
+ *  - text: string to speak
+ *  - accent: string ('IN' | 'US' | 'UK')
  */
-export default function SpeakButton({ text, className = '', ...props }) {
+export default function SpeakButton({ text, accent = "US", className = '', ...props }) {
   const [speaking, setSpeaking] = useState(false);
 
   const handleSpeak = async (e) => {
     e.stopPropagation();
     if (speaking || !text) return;
     setSpeaking(true);
-    await speakEnglish(text, 0.85);
+    await speakEnglish(text, 0.85, accent);
     setSpeaking(false);
   };
 

@@ -109,6 +109,7 @@ export const ASSESSMENT_QUESTIONS = [
     speechText: "Consistency is the key to success",
     questionHindi: "इस वाक्य को जोर से बोलें: 'Consistency is the key to success'",
     questionEnglish: "Pronounce this sentence aloud: 'Consistency is the key to success'",
+    phoneticHindi: "कंसिस्टेंसी इज़ द की टू सक्सेस",
     explanation: "यह वाक्य नियमित अभ्यास के महत्व को दर्शाता है: 'निरंतरता ही सफलता की कुंजी है।'"
   }
 ];
@@ -138,7 +139,11 @@ export const LESSONS = {
         {
           english: "Water",
           hindi: "पानी / जल",
-          pronunciation: "वॉटर",
+          pronunciation: {
+            IN: "वॉटर (Clear 't')",
+            US: "वाडर (Soft 'd' sound)",
+            UK: "वोटा (Silent 'r' at end)"
+          },
           useCase: "पीने के पानी को मांगने या बताने के लिए।"
         },
         {
@@ -184,7 +189,8 @@ export const LESSONS = {
         {
           type: "speech",
           speechText: "This is my school",
-          questionHindi: "इस वाक्य को बोलें: 'This is my school' (यह मेरा स्कूल है)"
+          questionHindi: "इस वाक्य को बोलें: 'This is my school' (यह मेरा स्कूल है)",
+          phoneticHindi: "दिस इज़ माई स्कूल"
         }
       ]
     },
@@ -199,7 +205,11 @@ export const LESSONS = {
         {
           english: "Hello",
           hindi: "नमस्ते / नमस्कार",
-          pronunciation: "हैलो",
+          pronunciation: {
+            IN: "हैलो",
+            US: "ह-लो (Huh-loh)",
+            UK: "हे-लो (Heh-loh)"
+          },
           useCase: "किसी से मिलने पर सम्मानपूर्वक बातचीत शुरू करने के लिए।"
         },
         {
@@ -217,7 +227,11 @@ export const LESSONS = {
         {
           english: "Thank you",
           hindi: "धन्यवाद / शुक्रिया",
-          pronunciation: "थैंक यू",
+          pronunciation: {
+            IN: "थैंक यू",
+            US: "थैंक्यू (Fast blend)",
+            UK: "थैंक यू"
+          },
           useCase: "जब कोई आपकी मदद करे या आपको कोई वस्तु दे (आभार जताने के लिए)।"
         },
         {

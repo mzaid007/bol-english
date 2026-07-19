@@ -21,6 +21,7 @@ export default function LessonRoute() {
   const [cardIndex, setCardIndex] = useState(0);
   const [quizIndex, setQuizIndex] = useState(0);
   const [quizScore, setQuizScore] = useState(0);
+  const [selectedAccent, setSelectedAccent] = useState('IN'); // 'IN' | 'US' | 'UK'
 
   // Quiz question states
   const [isAnswered, setIsAnswered] = useState(false);
@@ -108,6 +109,10 @@ export default function LessonRoute() {
     if (!card) return null;
     const pct = ((cardIndex + 1) / lesson.cards.length) * 100;
 
+    const pronun = typeof card.pronunciation === 'object'
+      ? card.pronunciation[selectedAccent]
+      : card.pronunciation;
+
     return (
       <div className="deck-view page grow">
         <div className="row-between mb-8">
@@ -120,21 +125,63 @@ export default function LessonRoute() {
           <Card className={`flashcard ${speech.isListening ? 'speaking-state' : ''}`}>
             <div className="flashcard-header row-between">
               <span className="text-xs bold secondary">CARD {cardIndex + 1}</span>
-              <button
-                type="button"
-                className="btn-icon-only"
-                onClick={() => speech.speak(card.english, 0.9)}
-                disabled={speech.isSpeaking}
-                style={{ fontSize: 16 }}
-                aria-label="Play audio"
-              >
-                🔊
-              </button>
+              <div className="row gap-8">
+                <button
+                  type="button"
+                  className="btn-icon-only"
+                  onClick={() => speech.speak(card.english, 0.9, selectedAccent)}
+                  disabled={speech.isSpeaking}
+                  style={{ fontSize: 16 }}
+                  title="सामान्य गति (Normal Speed)"
+                  aria-label="Play normal speed audio"
+                >
+                  🔊
+                </button>
+                <button
+                  type="button"
+                  className="btn-icon-only"
+                  onClick={() => speech.speak(card.english, 0.6, selectedAccent)}
+                  disabled={speech.isSpeaking}
+                  style={{ fontSize: 16 }}
+                  title="धीमी गति (Slow Speed)"
+                  aria-label="Play slow speed audio"
+                >
+                  🐢
+                </button>
+              </div>
             </div>
             
             <div className="flashcard-body">
+              {/* Tri-Accent Selector */}
+              <div className="row gap-8 mb-16 justify-center" style={{ borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+                {['IN', 'US', 'UK'].map((acc) => (
+                  <button
+                    key={acc}
+                    type="button"
+                    onClick={() => setSelectedAccent(acc)}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: 11,
+                      borderRadius: 'var(--radius-sm)',
+                      background: selectedAccent === acc ? 'var(--accent)' : 'var(--surface-3)',
+                      color: selectedAccent === acc ? 'white' : 'var(--text-secondary)',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      transition: 'background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease)'
+                    }}
+                  >
+                    {acc === 'IN' && '🇮🇳 India'}
+                    {acc === 'US' && '🇺🇸 US'}
+                    {acc === 'UK' && '🇬🇧 UK'}
+                  </button>
+                ))}
+              </div>
+
               <div className="flashcard-en">{card.english}</div>
-              <div className="flashcard-pronun">{card.pronunciation}</div>
+              <div className="flashcard-pronun">
+                उच्चारण ({selectedAccent}): <strong>{pronun}</strong>
+              </div>
               <div className="flashcard-hi hindi-text">{card.hindi}</div>
               {card.useCase && <div className="flashcard-use hindi-text">{card.useCase}</div>}
               
@@ -239,7 +286,7 @@ export default function LessonRoute() {
         </div>
 
         <div className="mb-24">
-          <QuestionBody key={quizIndex} question={quiz} speech={speech} onResolved={handleQuizResolved} />
+          <QuestionBody key={quizIndex} question={quiz} speech={speech} onResolved={handleQuizResolved} accent={selectedAccent} />
         </div>
 
         {isAnswered && (
@@ -258,7 +305,10 @@ export default function LessonRoute() {
               ) && (
                 <div className="mt-8 row gap-6 text-xs bold secondary items-center" style={{ flexWrap: 'wrap' }}>
                   <span>सुनें (Listen):</span>
-                  <SpeakButton text={Array.isArray(quiz.correctAnswer) ? quiz.correctAnswer.join(' ') : quiz.correctAnswer} />
+                  <SpeakButton 
+                    text={Array.isArray(quiz.correctAnswer) ? quiz.correctAnswer.join(' ') : quiz.correctAnswer} 
+                    accent={selectedAccent}
+                  />
                 </div>
               )}
             </div>
