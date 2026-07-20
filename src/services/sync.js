@@ -13,14 +13,16 @@ export const SyncService = {
         body: JSON.stringify({ email, profile, progress })
       });
       
+      const data = await response.json().catch(() => ({}));
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMsg = data.details || data.error || `HTTP status ${response.status}`;
+        throw new Error(errorMsg);
       }
       
-      const data = await response.json();
       return data.success;
     } catch (e) {
-      console.error("Cloud Sync Failed:", e);
+      console.error("Cloud Sync Failed:", e.message);
       return false;
     }
   },
@@ -30,12 +32,12 @@ export const SyncService = {
     if (!email) return null;
     try {
       const response = await fetch(`/api/fetch?email=${encodeURIComponent(email)}`);
+      const data = await response.json().catch(() => ({}));
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorMsg = data.details || data.error || `HTTP status ${response.status}`;
+        throw new Error(errorMsg);
       }
-      
-      const data = await response.json();
       
       if (data.success && data.exists) {
         return {
@@ -45,7 +47,7 @@ export const SyncService = {
       }
       return null;
     } catch (e) {
-      console.error("Cloud Fetch Failed:", e);
+      console.error("Cloud Fetch Failed:", e.message);
       return null;
     }
   }
