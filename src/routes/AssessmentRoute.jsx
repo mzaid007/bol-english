@@ -25,6 +25,7 @@ export default function AssessmentRoute() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
+  const [selectedAccent, setSelectedAccent] = useState('IN'); // 'IN' | 'US' | 'UK'
 
   const question = ASSESSMENT_QUESTIONS[index];
   const total = ASSESSMENT_QUESTIONS.length;
@@ -36,14 +37,14 @@ export default function AssessmentRoute() {
     speech.resetSpeech();
     // Auto-play listening questions once.
     if (question?.type === 'listening') {
-      const t = setTimeout(() => speech.speak(question.audioText, 0.85), 250);
+      const t = setTimeout(() => speech.speak(question.audioText, 0.85, selectedAccent), 250);
       return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
+  }, [index, selectedAccent]);
 
   const handleResolved = (correct) => {
-    if (isAnswered) return; // guard against double resolve (e.g. speech effect)
+    if (isAnswered) return; // guard against double resolve
     setIsCorrect(correct);
     setIsAnswered(true);
     if (correct) setScore((s) => s + 1);
@@ -78,14 +79,41 @@ export default function AssessmentRoute() {
   return (
     <div className="app-container no-nav page">
       {/* Header row */}
-      <div className="row-between mb-16">
+      <div className="row-between mb-12">
         <span className="bold text-sm">प्रारंभिक मूल्यांकन (Analyzer)</span>
         <span className="text-xs muted">प्रश्न {index + 1} / {total}</span>
       </div>
-      <ProgressBar value={progressPercent} className="mb-24" />
+      <ProgressBar value={progressPercent} className="mb-16" />
+
+      {/* Tri-Accent Selector Bar */}
+      <div className="row gap-8 mb-16 justify-center" style={{ background: 'var(--surface)', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+        <span className="text-xs muted bold" style={{ fontSize: 11 }}>उच्चारण (Accent):</span>
+        {['IN', 'US', 'UK'].map((acc) => (
+          <button
+            key={acc}
+            type="button"
+            onClick={() => setSelectedAccent(acc)}
+            style={{
+              padding: '4px 10px',
+              fontSize: 11,
+              borderRadius: 'var(--radius-sm)',
+              background: selectedAccent === acc ? 'var(--accent)' : 'var(--surface-3)',
+              color: selectedAccent === acc ? 'white' : 'var(--text-secondary)',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: 600,
+              transition: 'background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease)'
+            }}
+          >
+            {acc === 'IN' && '🇮🇳 India'}
+            {acc === 'US' && '🇺🇸 US'}
+            {acc === 'UK' && '🇬🇧 UK'}
+          </button>
+        ))}
+      </div>
 
       {/* Question */}
-      <div className="mb-24">
+      <div className="mb-20">
         {question.difficulty && (
           <span className="badge badge-accent mb-12">{DIFFICULTY_LABEL[question.difficulty]}</span>
         )}
@@ -99,8 +127,9 @@ export default function AssessmentRoute() {
         )}
       </div>
 
+      {/* Interactive Body */}
       <div className="mb-24">
-        <QuestionBody key={question.id} question={question} speech={speech} onResolved={handleResolved} accent="IN" />
+        <QuestionBody key={question.id} question={question} speech={speech} onResolved={handleResolved} accent={selectedAccent} />
       </div>
 
       {/* Feedback + next */}
@@ -114,7 +143,7 @@ export default function AssessmentRoute() {
             {hasEnglishText(ansStr) && (
               <div className="mt-8 row gap-6 text-xs bold secondary items-center" style={{ flexWrap: 'wrap' }}>
                 <span>सही उत्तर: <strong>{ansStr}</strong></span>
-                <SpeakButton text={ansStr} accent="IN" />
+                <SpeakButton text={ansStr} accent={selectedAccent} />
               </div>
             )}
           </div>
