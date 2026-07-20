@@ -177,8 +177,16 @@ export function AppProvider({ children }) {
 
   const disconnectEmail = useCallback(() => {
     updateProfile((p) => ({ ...p, email: '' }));
-    toast.show('लॉगआउट हो गया। प्रगति अब केवल इस डिवाइस पर रहेगी।', { icon: '🔌' });
+    toast.show('ईमेल डिस्कनेक्ट हो गया।', { icon: '🔌' });
   }, [updateProfile, toast]);
+
+  /* ----- Complete Sign Out ----- */
+  const signOut = useCallback(() => {
+    StorageService.resetAll();
+    setProfile(DEFAULT_PROFILE);
+    setProgress(DEFAULT_PROGRESS);
+    toast.show('सफलतापूर्वक साइन आउट हो गए।', { icon: '🚪' });
+  }, [toast]);
 
   /* ----- Reset everything ----- */
   const resetAll = useCallback(() => {
@@ -201,6 +209,7 @@ export function AppProvider({ children }) {
     trackAnswer,
     connectEmail,
     disconnectEmail,
+    signOut,
     resetAll,
   };
 

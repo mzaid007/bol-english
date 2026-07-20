@@ -17,7 +17,7 @@ const GOAL_LABELS = {
 
 export default function ProfileRoute() {
   const navigate = useNavigate();
-  const { profile, progress, disconnectEmail, resetAll } = useApp();
+  const { profile, progress, disconnectEmail, signOut, resetAll } = useApp();
   
   const [syncOpen, setSyncOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -76,7 +76,27 @@ export default function ProfileRoute() {
         )}
       </Card>
 
-      {/* Settings / Reset Card */}
+      {/* Account Session & Danger Zone */}
+      <Card className="mb-20">
+        <p className="bold text-sm mb-4">🚪 अकाउंट सत्र (Account Session)</p>
+        <p className="hindi-text text-xs secondary mb-12" style={{ lineHeight: 1.5 }}>
+          यदि आप किसी दूसरे अकाउंट से लॉगिन करना चाहते हैं या सत्र समाप्त करना चाहते हैं:
+        </p>
+        <div className="row gap-8 flex-wrap">
+          <Button
+            variant="secondary"
+            className="btn-auto"
+            onClick={() => {
+              signOut();
+              navigate('/onboarding');
+            }}
+          >
+            🚪 साइन आउट (Sign Out)
+          </Button>
+        </div>
+      </Card>
+
+      {/* Danger Zone */}
       <Card className="mb-20">
         <p className="bold text-sm mb-4" style={{ color: 'var(--error)' }}>⚠️ खतरनाक क्षेत्र (Danger Zone)</p>
         <p className="hindi-text text-xs secondary mb-12" style={{ lineHeight: 1.5 }}>

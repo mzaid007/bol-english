@@ -15,7 +15,7 @@ const GOALS = [
 ];
 
 export default function OnboardingRoute() {
-  const { profile, updateProfile, isConnecting } = useApp();
+  const { profile, updateProfile, isConnecting, signOut } = useApp();
   const navigate = useNavigate();
 
   const [name, setName] = useState(profile.name || '');
@@ -39,24 +39,44 @@ export default function OnboardingRoute() {
           <span className="brand-mark" style={{ width: 28, height: 28, fontSize: 14 }}>B</span>
           <span>BolEnglish</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setSyncOpen(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--accent)',
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          <span>🔐</span>
-          <span>लॉगिन करें (Sign In)</span>
-        </button>
+        
+        {profile.onboarded ? (
+          <div className="row gap-8 items-center">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              डैशबोर्ड →
+            </button>
+            <button
+              type="button"
+              onClick={signOut}
+              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              🚪 साइन आउट
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setSyncOpen(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--accent)',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <span>🔐</span>
+            <span>लॉगिन करें (Sign In)</span>
+          </button>
+        )}
       </div>
 
       {/* Brand Hero Header */}
