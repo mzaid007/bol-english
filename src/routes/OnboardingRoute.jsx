@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
 import SyncSheet from '../components/SyncSheet';
 
 const AVATARS = ['🧑‍🎓', '👩‍💻', '👨‍💼', '🚀', '🌟', '🐼', '🦁', '🦊'];
@@ -32,115 +33,125 @@ export default function OnboardingRoute() {
 
   return (
     <div className="app-container no-nav page">
-      {/* Brand hero */}
-      <div className="center" style={{ margin: '32px 0 24px' }}>
-        <div className="app-header-brand" style={{ justifyContent: 'center', fontSize: 32, marginBottom: 8 }}>
-          <span className="brand-mark" style={{ width: 44, height: 44, fontSize: 22 }}>B</span>
+      {/* Top Navigation / Sign In link for returning users */}
+      <div className="row-between py-12 mb-16" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="app-header-brand" style={{ fontSize: 20 }}>
+          <span className="brand-mark" style={{ width: 28, height: 28, fontSize: 14 }}>B</span>
           <span>BolEnglish</span>
         </div>
-        <p className="hindi-text" style={{ fontSize: 16, color: 'var(--text-secondary)', fontWeight: 500 }}>
+        <button
+          type="button"
+          onClick={() => setSyncOpen(true)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--accent)',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+        >
+          <span>🔐</span>
+          <span>लॉगिन करें (Sign In)</span>
+        </button>
+      </div>
+
+      {/* Brand Hero Header */}
+      <div className="center mb-24">
+        <h1 className="hindi-text" style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
           हिन्दी से अंग्रेज़ी सीखें — बिल्कुल मुफ़्त!
-        </p>
-        <p className="text-xs muted mt-4">Learn English from Hindi — 100% Free, Forever.</p>
+        </h1>
+        <p className="text-xs muted">Learn English from Hindi — 100% Free, Forever.</p>
       </div>
 
-      {/* Returning users: email restore */}
-      <div className="mb-16">
-        {profile.email ? (
-          <div className="card center" style={{ padding: 16 }}>
-            <span className="bold text-sm">✅ लॉगिन है (Signed In)</span>
-            <span className="text-xs secondary mt-4">
-              ईमेल: <strong>{profile.email}</strong>
-            </span>
-            <Button variant="ghost" size="sm" className="btn-auto mt-8"
-              onClick={() => navigate('/dashboard')}>
-              डैशबोर्ड पर जाएं →
-            </Button>
-          </div>
-        ) : (
-          <div className="card">
-            <p className="bold text-sm mb-4">वापस आने वाले उपयोगकर्ता (Returning Users)</p>
-            <p className="hindi-text text-xs" style={{ color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 10 }}>
-              क्या आपने पहले BolEnglish इस्तेमाल किया है? अपना वही ईमेल दर्ज करें — हम आपकी पिछली प्रगति, XP और पाठ तुरंत लोड कर देंगे।
-            </p>
-            <Button variant="secondary" className="btn-block" onClick={() => setSyncOpen(true)}>
-              🔄 पुरानी प्रगति लाएं (Restore Progress)
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Divider */}
-      <div className="row mb-16" style={{ color: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }}>
-        <div className="grow" style={{ height: 1, background: 'var(--border)' }} />
-        <span style={{ padding: '0 12px' }}>या (OR) नया प्रोफ़ाइल बनाएं</span>
-        <div className="grow" style={{ height: 1, background: 'var(--border)' }} />
-      </div>
-
-      {/* New profile form */}
-      <form onSubmit={start} className="page">
-        <div className="form-group">
-          <label className="form-label" htmlFor="name">आपका नाम (Your Name)</label>
-          <input
-            id="name"
-            type="text"
-            className="form-input"
-            placeholder="अमित कुमार..."
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={isConnecting}
-          />
+      {/* Main Registration / Onboarding Form (Primary Focus) */}
+      <Card className="mb-24 p-20">
+        <div className="mb-16">
+          <h2 className="text-base bold mb-2" style={{ color: 'var(--text)' }}>
+            नया प्रोफ़ाइल बनाएं (Start Learning)
+          </h2>
+          <p className="hindi-text text-xs text-secondary" style={{ fontSize: 13 }}>
+            शुरू करने के लिए अपना नाम और सीखने का लक्ष्य चुनें:
+          </p>
         </div>
 
-        <div className="form-group">
-          <span className="form-label">अवतार चुनें (Select Avatar)</span>
-          <div className="avatar-grid" role="radiogroup" aria-label="अवतार चुनें">
-            {AVATARS.map((emoji) => (
-              <button
-                type="button"
-                key={emoji}
-                className={`avatar-option ${avatar === emoji ? 'selected' : ''}`}
-                onClick={() => setAvatar(emoji)}
-                role="radio"
-                aria-checked={avatar === emoji}
-                aria-label={`अवतार ${emoji}`}
-              >
-                {emoji}
-              </button>
-            ))}
+        <form onSubmit={start}>
+          <div className="form-group mb-16">
+            <label className="form-label" htmlFor="name">आपका नाम (Your Name)</label>
+            <input
+              id="name"
+              type="text"
+              className="form-input"
+              placeholder="अमित कुमार..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={isConnecting}
+            />
           </div>
-        </div>
 
-        <div className="form-group">
-          <span className="form-label">आपका लक्ष्य (Learning Goal)</span>
-          <div className="selector-list" role="radiogroup" aria-label="सीखने का लक्ष्य">
-            {GOALS.map((g) => (
-              <div
-                key={g.id}
-                className={`selectable ${goal === g.id ? 'selected' : ''}`}
-                onClick={() => setGoal(g.id)}
-                role="radio"
-                aria-checked={goal === g.id}
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGoal(g.id); }
-                }}
-              >
-                <div className="selectable-icon" aria-hidden="true">{g.icon}</div>
-                <div className="selectable-text">
-                  <span className="selectable-title hindi-text">{g.title}</span>
-                  <span className="selectable-sub hindi-text">{g.sub}</span>
+          <div className="form-group mb-16">
+            <span className="form-label">अवतार चुनें (Select Avatar)</span>
+            <div className="avatar-grid" role="radiogroup" aria-label="अवतार चुनें">
+              {AVATARS.map((emoji) => (
+                <button
+                  type="button"
+                  key={emoji}
+                  className={`avatar-option ${avatar === emoji ? 'selected' : ''}`}
+                  onClick={() => setAvatar(emoji)}
+                  role="radio"
+                  aria-checked={avatar === emoji}
+                  aria-label={`अवतार ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group mb-20">
+            <span className="form-label">आपका लक्ष्य (Learning Goal)</span>
+            <div className="selector-list" role="radiogroup" aria-label="सीखने का लक्ष्य">
+              {GOALS.map((g) => (
+                <div
+                  key={g.id}
+                  className={`selectable ${goal === g.id ? 'selected' : ''}`}
+                  onClick={() => setGoal(g.id)}
+                  role="radio"
+                  aria-checked={goal === g.id}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGoal(g.id); }
+                  }}
+                >
+                  <div className="selectable-icon" aria-hidden="true">{g.icon}</div>
+                  <div className="selectable-text">
+                    <span className="selectable-title hindi-text">{g.title}</span>
+                    <span className="selectable-sub hindi-text">{g.sub}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
-        <Button type="submit" className="mt-12" disabled={!name.trim() || !goal}>
-          आगे बढ़ें (Let's Go) →
+          <Button type="submit" className="btn-block" disabled={!name.trim() || !goal}>
+            सीखना शुरू करें (Start Learning) →
+          </Button>
+        </form>
+      </Card>
+
+      {/* Secondary Link for Returning Users */}
+      <div className="center py-12 mb-24">
+        <p className="hindi-text text-xs text-secondary mb-8">
+          क्या आपने पहले BolEnglish का उपयोग किया है?
+        </p>
+        <Button variant="secondary" size="sm" className="btn-auto" onClick={() => setSyncOpen(true)}>
+          🔄 पुरानी प्रगति लाएं (Restore Progress)
         </Button>
-      </form>
+      </div>
 
       <SyncSheet open={syncOpen} onClose={() => setSyncOpen(false)} />
     </div>
