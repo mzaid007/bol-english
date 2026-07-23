@@ -86,7 +86,7 @@ export default function AssessmentRoute() {
       <ProgressBar value={progressPercent} className="mb-16" />
 
       {/* Tri-Accent Selector Bar */}
-      <div className="row gap-8 mb-16 justify-center" style={{ background: 'var(--surface)', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+      <div className="row gap-8 mb-16 justify-center" style={{ background: 'var(--surface-2)', padding: '8px 14px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--glass-border)' }}>
         <span className="text-xs muted bold" style={{ fontSize: 11 }}>उच्चारण (Accent):</span>
         {['IN', 'US', 'UK'].map((acc) => (
           <button
@@ -94,15 +94,16 @@ export default function AssessmentRoute() {
             type="button"
             onClick={() => setSelectedAccent(acc)}
             style={{
-              padding: '4px 10px',
-              fontSize: 11,
-              borderRadius: 'var(--radius-sm)',
-              background: selectedAccent === acc ? 'var(--accent)' : 'var(--surface-3)',
-              color: selectedAccent === acc ? 'white' : 'var(--text-secondary)',
-              border: 'none',
+              padding: '4px 12px',
+              fontSize: 11.5,
+              borderRadius: 'var(--radius-pill)',
+              background: selectedAccent === acc ? 'var(--accent-gradient)' : 'var(--surface-3)',
+              color: selectedAccent === acc ? '#ffffff' : 'var(--text-secondary)',
+              border: selectedAccent === acc ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid var(--glass-border)',
               cursor: 'pointer',
               fontWeight: 600,
-              transition: 'background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease)'
+              boxShadow: selectedAccent === acc ? '0 0 16px rgba(168, 85, 247, 0.4)' : 'none',
+              transition: 'all var(--dur-fast) var(--ease)'
             }}
           >
             {acc === 'IN' && '🇮🇳 India'}

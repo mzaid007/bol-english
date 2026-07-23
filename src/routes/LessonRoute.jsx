@@ -153,22 +153,23 @@ export default function LessonRoute() {
             
             <div className="flashcard-body">
               {/* Tri-Accent Selector */}
-              <div className="row gap-8 mb-16 justify-center" style={{ borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <div className="row gap-8 mb-16 justify-center" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: 12 }}>
                 {['IN', 'US', 'UK'].map((acc) => (
                   <button
                     key={acc}
                     type="button"
                     onClick={() => setSelectedAccent(acc)}
                     style={{
-                      padding: '4px 10px',
-                      fontSize: 11,
-                      borderRadius: 'var(--radius-sm)',
-                      background: selectedAccent === acc ? 'var(--accent)' : 'var(--surface-3)',
-                      color: selectedAccent === acc ? 'white' : 'var(--text-secondary)',
-                      border: 'none',
+                      padding: '5px 12px',
+                      fontSize: 11.5,
+                      borderRadius: 'var(--radius-pill)',
+                      background: selectedAccent === acc ? 'var(--accent-gradient)' : 'var(--surface-2)',
+                      color: selectedAccent === acc ? '#ffffff' : 'var(--text-secondary)',
+                      border: selectedAccent === acc ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid var(--glass-border)',
                       cursor: 'pointer',
                       fontWeight: 600,
-                      transition: 'background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease)'
+                      boxShadow: selectedAccent === acc ? '0 0 16px rgba(168, 85, 247, 0.4)' : 'none',
+                      transition: 'all var(--dur-fast) var(--ease)'
                     }}
                   >
                     {acc === 'IN' && '🇮🇳 India'}

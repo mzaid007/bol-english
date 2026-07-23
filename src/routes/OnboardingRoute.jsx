@@ -33,10 +33,10 @@ export default function OnboardingRoute() {
 
   return (
     <div className="app-container no-nav page">
-      {/* Top Navigation / Sign In link for returning users */}
-      <div className="row-between py-12 mb-16" style={{ borderBottom: '1px solid var(--border)' }}>
-        <div className="app-header-brand" style={{ fontSize: 20 }}>
-          <span className="brand-mark" style={{ width: 28, height: 28, fontSize: 14 }}>B</span>
+      {/* Top Header Capsule Bar */}
+      <div className="row-between py-12 mb-20" style={{ borderBottom: '1px solid var(--glass-border)' }}>
+        <div className="app-header-brand" style={{ fontSize: 22 }}>
+          <span className="brand-mark" style={{ width: 32, height: 32, fontSize: 16 }}>B</span>
           <span>BolEnglish</span>
         </div>
         
@@ -44,15 +44,15 @@ export default function OnboardingRoute() {
           <div className="row gap-8 items-center">
             <button
               type="button"
+              className="btn btn-secondary btn-sm"
               onClick={() => navigate('/dashboard')}
-              style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             >
               डैशबोर्ड →
             </button>
             <button
               type="button"
+              className="btn btn-ghost btn-sm"
               onClick={signOut}
-              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
             >
               🚪 साइन आउट
             </button>
@@ -60,18 +60,8 @@ export default function OnboardingRoute() {
         ) : (
           <button
             type="button"
+            className="btn btn-secondary btn-sm"
             onClick={() => setSyncOpen(true)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--accent)',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
           >
             <span>🔐</span>
             <span>लॉगिन करें (Sign In)</span>
@@ -79,27 +69,30 @@ export default function OnboardingRoute() {
         )}
       </div>
 
-      {/* Brand Hero Header */}
-      <div className="center mb-24">
-        <h1 className="hindi-text" style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
-          हिन्दी से अंग्रेज़ी सीखें — बिल्कुल मुफ़्त!
+      {/* CreativeGlu AI Hero Header */}
+      <div className="center mb-32 pt-8">
+        <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, marginBottom: 12 }}>
+          The future of English learning is yours to <span className="rainbow-text">create</span>
         </h1>
-        <p className="text-xs muted">Learn English from Hindi — 100% Free, Forever.</p>
+        <p className="hindi-text" style={{ fontSize: 16, color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 4 }}>
+          हिन्दी से अंग्रेज़ी सीखें — बिल्कुल मुफ़्त!
+        </p>
+        <p className="text-xs muted">100% Free, Forever.</p>
       </div>
 
-      {/* Main Registration / Onboarding Form (Primary Focus) */}
-      <Card className="mb-24 p-20">
-        <div className="mb-16">
-          <h2 className="text-base bold mb-2" style={{ color: 'var(--text)' }}>
+      {/* Main Glass Registration Card */}
+      <Card className="mb-28 p-24">
+        <div className="mb-20">
+          <h2 className="text-lg bold mb-4" style={{ color: '#ffffff' }}>
             नया प्रोफ़ाइल बनाएं (Start Learning)
           </h2>
-          <p className="hindi-text text-xs text-secondary" style={{ fontSize: 13 }}>
+          <p className="hindi-text text-xs text-secondary" style={{ fontSize: 13.5 }}>
             शुरू करने के लिए अपना नाम और सीखने का लक्ष्य चुनें:
           </p>
         </div>
 
         <form onSubmit={start}>
-          <div className="form-group mb-16">
+          <div className="form-group mb-20">
             <label className="form-label" htmlFor="name">आपका नाम (Your Name)</label>
             <input
               id="name"
@@ -113,7 +106,7 @@ export default function OnboardingRoute() {
             />
           </div>
 
-          <div className="form-group mb-16">
+          <div className="form-group mb-20">
             <span className="form-label">अवतार चुनें (Select Avatar)</span>
             <div className="avatar-grid" role="radiogroup" aria-label="अवतार चुनें">
               {AVATARS.map((emoji) => (
@@ -132,7 +125,7 @@ export default function OnboardingRoute() {
             </div>
           </div>
 
-          <div className="form-group mb-20">
+          <div className="form-group mb-24">
             <span className="form-label">आपका लक्ष्य (Learning Goal)</span>
             <div className="selector-list" role="radiogroup" aria-label="सीखने का लक्ष्य">
               {GOALS.map((g) => (
@@ -157,15 +150,15 @@ export default function OnboardingRoute() {
             </div>
           </div>
 
-          <Button type="submit" className="btn-block" disabled={!name.trim() || !goal}>
+          <Button type="submit" className="btn-primary btn-block" disabled={!name.trim() || !goal}>
             सीखना शुरू करें (Start Learning) →
           </Button>
         </form>
       </Card>
 
       {/* Secondary Link for Returning Users */}
-      <div className="center py-12 mb-24">
-        <p className="hindi-text text-xs text-secondary mb-8">
+      <div className="center py-12 mb-32">
+        <p className="hindi-text text-xs text-secondary mb-10">
           क्या आपने पहले BolEnglish का उपयोग किया है?
         </p>
         <Button variant="secondary" size="sm" className="btn-auto" onClick={() => setSyncOpen(true)}>

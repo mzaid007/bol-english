@@ -66,23 +66,23 @@ export default function DashboardRoute() {
 
   return (
     <div className="app-container page">
-      {/* Profile Card */}
-      <Card className="mb-20">
+      {/* Profile Summary Glass Card */}
+      <Card className="mb-24">
         <div className="dashboard-user">
-          <div className="user-avatar" aria-hidden="true">
+          <div className="user-avatar" style={{ border: '2px solid rgba(168, 85, 247, 0.4)', boxShadow: '0 0 20px rgba(168, 85, 247, 0.3)' }} aria-hidden="true">
             {profile.avatar || '🧑‍🎓'}
           </div>
           <div>
-            <div className="user-greeting">नमस्ते,</div>
-            <div className="user-name">{profile.name || 'शिक्षार्थी'}</div>
-            <Badge variant={levelInfo.class} className="mt-4">
+            <div className="user-greeting text-xs muted">नमस्ते,</div>
+            <div className="user-name bold text-lg" style={{ color: '#ffffff' }}>{profile.name || 'शिक्षार्थी'}</div>
+            <Badge variant={levelInfo.class} className="mt-6">
               {levelInfo.text}
             </Badge>
           </div>
         </div>
 
         {/* Stats Row */}
-        <div className="dashboard-stats mt-16 pt-16" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="dashboard-stats mt-20 pt-16" style={{ borderTop: '1px solid var(--glass-border)' }}>
           <StatChip icon="🔥">{progress.streak || 0} Streak</StatChip>
           <StatChip icon="💎">{progress.xp || 0} XP</StatChip>
           <StatChip icon="✅">{progress.completedLessons.length} Completed</StatChip>
@@ -91,17 +91,17 @@ export default function DashboardRoute() {
 
       {/* Goal Pathway Recommendation Card */}
       {profile.goal && GOAL_RECOMMENDATIONS[profile.goal] && (
-        <Card className="mb-20" style={{ borderLeft: '4px solid var(--accent)', background: 'var(--accent-soft)' }}>
-          <p className="bold text-xs secondary mb-4 uppercase tracking-wider" style={{ color: 'var(--accent)', fontSize: 10 }}>
+        <Card className="mb-24" style={{ borderLeft: '4px solid #c084fc', background: 'rgba(168, 85, 247, 0.08)' }}>
+          <p className="bold text-xs mb-6 uppercase tracking-wider" style={{ color: '#c084fc', fontSize: 11 }}>
             🎯 आपके लक्ष्य के लिए अनुशंसित (Recommended for Your Goal)
           </p>
-          <h3 className="text-sm bold mb-6" style={{ color: 'var(--text)' }}>
+          <h3 className="text-base bold mb-6" style={{ color: '#ffffff' }}>
             {GOAL_RECOMMENDATIONS[profile.goal].title}
           </h3>
-          <p className="text-xs text-secondary mb-12 hindi-text" style={{ fontSize: 13, lineHeight: 1.4 }}>
+          <p className="text-xs text-secondary mb-16 hindi-text" style={{ fontSize: 13.5, lineHeight: 1.5 }}>
             {GOAL_RECOMMENDATIONS[profile.goal].desc}
           </p>
-          <div className="row gap-8 flex-wrap">
+          <div className="row gap-10 flex-wrap">
             {GOAL_RECOMMENDATIONS[profile.goal].lessons.map((rec) => {
               const isDone = progress.completedLessons.includes(rec.id);
               return (
@@ -111,18 +111,14 @@ export default function DashboardRoute() {
                     setActiveTab(rec.level);
                     navigate(`/lesson/${rec.id}`);
                   }}
-                  className="btn-icon"
+                  className="btn btn-secondary btn-sm"
                   style={{
-                    padding: '8px 12px',
-                    fontSize: 12,
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    fontWeight: 600,
-                    display: 'flex',
+                    fontSize: 12.5,
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: 6,
-                    color: isDone ? 'var(--success)' : 'var(--text)',
+                    borderColor: isDone ? 'var(--success-border)' : 'var(--glass-border)',
+                    color: isDone ? '#4ade80' : '#ffffff',
                   }}
                 >
                   <span>{isDone ? '✅' : '📖'}</span>
@@ -134,7 +130,7 @@ export default function DashboardRoute() {
         </Card>
       )}
 
-      {/* Tabs */}
+      {/* Level Tabs */}
       <div className="dashboard-tabs">
         {['beginner', 'intermediate', 'advanced'].map((lvl) => {
           const isActive = activeTab === lvl;
@@ -157,16 +153,16 @@ export default function DashboardRoute() {
         })}
       </div>
 
-      {/* Recommended recommendation badge */}
+      {/* Recommended badge */}
       {profile.level === activeTab && (
-        <div className="row gap-6 mb-12 text-sm bold" style={{ color: 'var(--accent)' }}>
+        <div className="row gap-6 mb-16 text-sm bold" style={{ color: '#c084fc' }}>
           <span>🌟</span>
           <span>आपके लिए अनुशंसित (Recommended for you)</span>
         </div>
       )}
 
       {/* Lesson List */}
-      <div className="lesson-list grow">
+      <div className="lesson-list grow mb-24">
         {(LESSONS[activeTab] || []).map((lesson) => {
           const isDone = progress.completedLessons.includes(lesson.id);
           return (
@@ -177,7 +173,7 @@ export default function DashboardRoute() {
             >
               <div className="lesson-card-details">
                 <h3 className="lesson-card-title">{lesson.titleEnglish}</h3>
-                <h4 className="hindi-text" style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                <h4 className="hindi-text" style={{ fontSize: 13.5, fontWeight: 400, color: 'var(--text-secondary)', marginBottom: 6 }}>
                   {lesson.titleHindi}
                 </h4>
                 <p className="lesson-card-desc hindi-text">{lesson.descriptionHindi}</p>
@@ -198,7 +194,7 @@ export default function DashboardRoute() {
       </div>
 
       {/* Retake Assessment */}
-      <div className="mt-24">
+      <div className="mt-12">
         <Button variant="secondary" onClick={() => navigate('/assessment')}>
           🔄 दोबारा स्तर जाँचें (Retake Assessment)
         </Button>
