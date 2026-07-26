@@ -21,9 +21,8 @@ export default function SyncSheet({ open, onClose, onSuccess }) {
     e.preventDefault();
     if (!email.trim() || isConnecting) return;
     const result = await connectEmail(email, profile.name);
-    if (result) {
+    if (result && result.success) {
       onClose?.();
-      // Route to wherever the merged profile says they should be.
       const dest = result.profile.assessmentCompleted ? '/dashboard' : '/assessment';
       if (onSuccess) onSuccess(result);
       else navigate(dest);

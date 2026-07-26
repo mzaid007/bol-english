@@ -121,7 +121,7 @@ export function AppProvider({ children }) {
   /* ----- Email cloud login + smart merge ----- */
   const connectEmail = useCallback(async (email, nameForProfile) => {
     const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail) return false;
+    if (!cleanEmail) return { success: false, error: 'कृपया एक वैध ईमेल दर्ज करें।' };
     setIsConnecting(true);
     try {
       const cloudData = await SyncService.fetchFromCloud(cleanEmail);
@@ -134,8 +134,9 @@ export function AppProvider({ children }) {
       };
       let nextProgress = { ...progress };
 
+      let isExistingUser = false;
       if (cloudData && cloudData.progress) {
-        // Smart merge: union lessons, take the higher stats.
+        isExistingUser = true;
         nextProgress = {
           completedLessons: Array.from(new Set([
             ...progress.completedLessons,
@@ -149,10 +150,11 @@ export function AppProvider({ children }) {
         };
         nextProfile = {
           ...nextProfile,
-          level: cloudData.profile.level || profile.level,
-          goal: cloudData.profile.goal || profile.goal,
-          avatar: cloudData.profile.avatar || profile.avatar,
-          assessmentCompleted: cloudData.profile.assessmentCompleted || profile.assessmentCompleted,
+          level: cloudData.profile?.level || profile.level,
+          goal: cloudData.profile?.goal || profile.goal,
+          avatar: cloudData.profile?.avatar || profile.avatar,
+          name: cloudData.profile?.name || nameForProfile || profile.name || 'User',
+          assessmentCompleted: cloudData.profile?.assessmentCompleted || profile.assessmentCompleted,
         };
         toast.success(`क्लाउड डेटा मिल गया! ${nextProgress.xp} XP रीस्टोर हुआ।`);
       } else {
@@ -165,11 +167,11 @@ export function AppProvider({ children }) {
       StorageService.saveProgress(nextProgress);
       setProfile(nextProfile);
       setProgress(nextProgress);
-      return { profile: nextProfile, progress: nextProgress };
+      return { success: true, isExistingUser, profile: nextProfile, progress: nextProgress };
     } catch (err) {
       console.error(err);
       toast.error('क्लाउड कनेक्शन विफल रहा। कृपया पुनः प्रयास करें।');
-      return false;
+      return { success: false, error: err.message || 'क्लाउड कनेक्शन विफल रहा।' };
     } finally {
       setIsConnecting(false);
     }
