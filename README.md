@@ -1,5 +1,10 @@
 # BolEnglish - Learn English from Hindi (हिन्दी से अंग्रेजी सीखें)
 
+[![Open Source](https://img.shields.io/badge/Open_Source-%E2%9D%A4-brightgreen?style=for-the-badge&logo=open-source-initiative&logoColor=white)](https://github.com/mzaid007/bol-english)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=for-the-badge)](file:///f:/Language%20Teacher/LICENSE)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+
 BolEnglish is a modern, lightweight, mobile-first, and desktop-friendly web application built with **React Router, Context API, and Vanilla CSS** to help Hindi-speaking learners analyze their English proficiency and learn English for free.
 
 ---
