@@ -12,7 +12,7 @@ if (typeof window !== 'undefined' && window.speechSynthesis) {
 
 /**
  * Text-To-Speech (TTS) Wrapper supporting dynamic tri-accents (IN, US, UK)
- * Features robust accent voice detection across Windows, macOS, Android, & iOS.
+ * Enforces British (en-GB) and Indian (en-IN) phonetic synthesis natively across all browsers.
  */
 export const speakEnglish = (text, rate = 0.9, accent = "US") => {
   return new Promise((resolve) => {
@@ -28,26 +28,32 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
 
+    // Determine target BCP-47 language tag
+    let targetLang = "en-US";
+    if (accent === "UK") targetLang = "en-GB";
+    else if (accent === "IN") targetLang = "en-IN";
+
+    // Set target language tag on utterance FIRST
+    utterance.lang = targetLang;
+
     // Get fresh voices array or fall back to cached list
     let voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) {
       voices = cachedVoices;
     }
 
-    let targetLang = "en-US";
     let selectedVoice = null;
 
     if (voices && voices.length > 0) {
       if (accent === "UK") {
-        targetLang = "en-GB";
-        // Comprehensive British / UK voice matching across platforms
+        // Match explicit UK / British voices
         selectedVoice = voices.find((v) => {
           const name = v.name.toLowerCase();
           const lang = v.lang.toLowerCase().replace('_', '-');
           return (
             lang === 'en-gb' ||
             lang === 'en-uk' ||
-            name.includes('google uk english') ||
+            name.includes('uk english') ||
             name.includes('great britain') ||
             name.includes('united kingdom') ||
             name.includes('british') ||
@@ -62,22 +68,20 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
           );
         });
 
-        // Secondary fallback for British accents (Irish / Australian / Commonwealth English)
         if (!selectedVoice) {
           selectedVoice = voices.find((v) => {
             const lang = v.lang.toLowerCase().replace('_', '-');
-            return lang.startsWith('en-gb') || lang.startsWith('en-uk') || lang.includes('gb') || lang.includes('uk');
+            return lang.startsWith('en-gb') || lang.startsWith('en-uk') || lang.endsWith('-gb') || lang.endsWith('-uk');
           });
         }
       } else if (accent === "IN") {
-        targetLang = "en-IN";
-        // Comprehensive Indian English voice matching
+        // Match explicit Indian English voices
         selectedVoice = voices.find((v) => {
           const name = v.name.toLowerCase();
           const lang = v.lang.toLowerCase().replace('_', '-');
           return (
             lang === 'en-in' ||
-            name.includes('google english (india)') ||
+            name.includes('english (india)') ||
             name.includes('india') ||
             name.includes('hindi') ||
             name.includes('heera') ||
@@ -90,18 +94,17 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
         if (!selectedVoice) {
           selectedVoice = voices.find((v) => {
             const lang = v.lang.toLowerCase().replace('_', '-');
-            return lang.startsWith('en-in') || lang.includes('in');
+            return lang.startsWith('en-in') || lang.endsWith('-in');
           });
         }
       } else {
-        targetLang = "en-US";
-        // American English voice matching
+        // Match explicit American English voices
         selectedVoice = voices.find((v) => {
           const name = v.name.toLowerCase();
           const lang = v.lang.toLowerCase().replace('_', '-');
           return (
             lang === 'en-us' ||
-            name.includes('google us english') ||
+            name.includes('us english') ||
             name.includes('united states') ||
             name.includes('david') ||
             name.includes('zira') ||
@@ -109,18 +112,13 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
           );
         });
       }
-
-      // Universal English fallback if specific accent voice is missing on device
-      if (!selectedVoice) {
-        selectedVoice = voices.find((v) => v.lang.toLowerCase().startsWith("en"));
-      }
     }
 
+    // CRITICAL: Only override utterance.voice if a genuine accent-matching voice object was found.
+    // Do NOT assign a generic US fallback voice object, as that breaks en-GB / en-IN native browser synthesis!
     if (selectedVoice) {
       utterance.voice = selectedVoice;
       utterance.lang = selectedVoice.lang;
-    } else {
-      utterance.lang = targetLang;
     }
 
     utterance.onend = () => resolve(true);
