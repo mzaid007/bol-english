@@ -10,7 +10,10 @@ if (typeof window !== 'undefined' && window.speechSynthesis) {
   };
 }
 
-// 1. Text-To-Speech (TTS) Wrapper supporting dynamic tri-accents (IN, US, UK)
+/**
+ * Text-To-Speech (TTS) Wrapper supporting dynamic tri-accents (IN, US, UK)
+ * Features robust accent voice detection across Windows, macOS, Android, & iOS.
+ */
 export const speakEnglish = (text, rate = 0.9, accent = "US") => {
   return new Promise((resolve) => {
     if (!window.speechSynthesis) {
@@ -23,12 +26,6 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-    
-    let targetLang = "en-US";
-    if (accent === "UK") targetLang = "en-GB";
-    else if (accent === "IN") targetLang = "en-IN";
-    
-    utterance.lang = targetLang;
     utterance.rate = rate;
 
     // Get fresh voices array or fall back to cached list
@@ -37,45 +34,93 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
       voices = cachedVoices;
     }
 
+    let targetLang = "en-US";
+    let selectedVoice = null;
+
     if (voices && voices.length > 0) {
-      const cleanTarget = targetLang.toLowerCase().replace('_', '-');
-      const regionCode = accent.toLowerCase(); // "in", "uk", "us"
+      if (accent === "UK") {
+        targetLang = "en-GB";
+        // Comprehensive British / UK voice matching across platforms
+        selectedVoice = voices.find((v) => {
+          const name = v.name.toLowerCase();
+          const lang = v.lang.toLowerCase().replace('_', '-');
+          return (
+            lang === 'en-gb' ||
+            lang === 'en-uk' ||
+            name.includes('google uk english') ||
+            name.includes('great britain') ||
+            name.includes('united kingdom') ||
+            name.includes('british') ||
+            name.includes('hazel') ||
+            name.includes('george') ||
+            name.includes('susan') ||
+            name.includes('daniel') ||
+            name.includes('oliver') ||
+            name.includes('kate') ||
+            name.includes('serena') ||
+            name.includes('stephanie')
+          );
+        });
 
-      // 1. Precise language tag match (e.g., en-IN)
-      let selectedVoice = voices.find((v) => {
-        const vl = v.lang.toLowerCase().replace('_', '-');
-        return vl === cleanTarget;
-      });
+        // Secondary fallback for British accents (Irish / Australian / Commonwealth English)
+        if (!selectedVoice) {
+          selectedVoice = voices.find((v) => {
+            const lang = v.lang.toLowerCase().replace('_', '-');
+            return lang.startsWith('en-gb') || lang.startsWith('en-uk') || lang.includes('gb') || lang.includes('uk');
+          });
+        }
+      } else if (accent === "IN") {
+        targetLang = "en-IN";
+        // Comprehensive Indian English voice matching
+        selectedVoice = voices.find((v) => {
+          const name = v.name.toLowerCase();
+          const lang = v.lang.toLowerCase().replace('_', '-');
+          return (
+            lang === 'en-in' ||
+            name.includes('google english (india)') ||
+            name.includes('india') ||
+            name.includes('hindi') ||
+            name.includes('heera') ||
+            name.includes('ravi') ||
+            name.includes('veena') ||
+            name.includes('sangeeta')
+          );
+        });
 
-      // 2. Region-specific keyword match if exact tag is absent
-      if (!selectedVoice && accent === "UK") {
-        selectedVoice = voices.find((v) =>
-          v.lang.toLowerCase().includes("gb") ||
-          v.name.toLowerCase().includes("uk") ||
-          v.name.toLowerCase().includes("united kingdom") ||
-          v.name.toLowerCase().includes("great britain")
-        );
-      } else if (!selectedVoice && accent === "IN") {
-        selectedVoice = voices.find((v) =>
-          v.lang.toLowerCase().includes("in") ||
-          v.name.toLowerCase().includes("india") ||
-          v.name.toLowerCase().includes("hindi")
-        );
-      } else if (!selectedVoice && accent === "US") {
-        selectedVoice = voices.find((v) =>
-          v.lang.toLowerCase().includes("us") ||
-          v.name.toLowerCase().includes("united states")
-        );
+        if (!selectedVoice) {
+          selectedVoice = voices.find((v) => {
+            const lang = v.lang.toLowerCase().replace('_', '-');
+            return lang.startsWith('en-in') || lang.includes('in');
+          });
+        }
+      } else {
+        targetLang = "en-US";
+        // American English voice matching
+        selectedVoice = voices.find((v) => {
+          const name = v.name.toLowerCase();
+          const lang = v.lang.toLowerCase().replace('_', '-');
+          return (
+            lang === 'en-us' ||
+            name.includes('google us english') ||
+            name.includes('united states') ||
+            name.includes('david') ||
+            name.includes('zira') ||
+            name.includes('mark')
+          );
+        });
       }
 
-      // 3. Fallback to any English voice
+      // Universal English fallback if specific accent voice is missing on device
       if (!selectedVoice) {
         selectedVoice = voices.find((v) => v.lang.toLowerCase().startsWith("en"));
       }
+    }
 
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang;
+    } else {
+      utterance.lang = targetLang;
     }
 
     utterance.onend = () => resolve(true);
