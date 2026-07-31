@@ -76,22 +76,19 @@ export default function ProfileRoute() {
         )}
       </Card>
 
-      {/* Account Session & Danger Zone */}
+      {/* Cloud Session Control */}
       <Card className="mb-20">
-        <p className="bold text-sm mb-4">🚪 अकाउंट सत्र (Account Session)</p>
+        <p className="bold text-sm mb-4">☁️ क्लाउड सत्र (Cloud Session)</p>
         <p className="hindi-text text-xs secondary mb-12" style={{ lineHeight: 1.5 }}>
-          यदि आप किसी दूसरे अकाउंट से लॉगिन करना चाहते हैं या सत्र समाप्त करना चाहते हैं:
+          अपनी प्रोग्रेस बैकअप करने या किसी अन्य डिवाइस पर अपनी पढ़ाई जारी रखने के लिए सिंक करें:
         </p>
         <div className="row gap-8 flex-wrap">
           <Button
             variant="secondary"
             className="btn-auto"
-            onClick={() => {
-              signOut();
-              navigate('/onboarding');
-            }}
+            onClick={() => setSyncOpen(true)}
           >
-            🚪 साइन आउट (Sign Out)
+            ☁️ सिंक सत्र प्रबंधन (Sync & Resume Session)
           </Button>
         </div>
       </Card>

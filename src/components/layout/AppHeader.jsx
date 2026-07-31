@@ -1,45 +1,44 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import StatChip from '../ui/StatChip';
+import SyncSheet from '../SyncSheet';
 
 /**
- * Sticky top header. Shows brand + streak/XP + Sign Out button.
- * Hidden on onboarding (controlled by the layout that renders it).
+ * Sticky top header with brand, streak/XP, and Cloud Sync button.
  */
 export default function AppHeader() {
-  const { profile, progress, signOut } = useApp();
-  const navigate = useNavigate();
-
-  const handleSignOut = () => {
-    signOut();
-    navigate('/onboarding');
-  };
+  const { profile, progress } = useApp();
+  const [syncOpen, setSyncOpen] = useState(false);
 
   return (
-    <header className="app-header">
-      <div className="app-header-inner">
-        <Link to="/dashboard" className="app-header-brand" aria-label="BolEnglish होम">
-          <span className="brand-mark" aria-hidden="true">B</span>
-          <span>BolEnglish</span>
-        </Link>
-        <div className="app-header-stats row gap-8 items-center">
-          <StatChip icon="🔥" title="Daily streak">{progress.streak || 0}</StatChip>
-          <StatChip icon="💎" title="Total XP">{progress.xp || 0}</StatChip>
-          {profile.onboarded && (
+    <>
+      <header className="app-header">
+        <div className="app-header-inner">
+          <Link to="/dashboard" className="app-header-brand" aria-label="BolEnglish होम">
+            <span className="brand-mark" aria-hidden="true">B</span>
+            <span>BolEnglish</span>
+          </Link>
+          <div className="app-header-stats row gap-8 items-center">
+            <StatChip icon="🔥" title="Daily streak">{progress.streak || 0}</StatChip>
+            <StatChip icon="💎" title="Total XP">{progress.xp || 0}</StatChip>
+            
             <button
               type="button"
-              className="btn-icon-only"
-              onClick={handleSignOut}
-              title="साइन आउट करें (Sign Out)"
-              aria-label="Sign Out"
-              style={{ fontSize: 14, padding: '4px 8px', background: 'var(--surface-3)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
+              className="btn btn-secondary btn-sm"
+              onClick={() => setSyncOpen(true)}
+              title="Cloud Sync & Session"
+              aria-label="Cloud Sync & Session"
+              style={{ padding: '6px 12px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 5 }}
             >
-              🚪
+              <span>☁️</span>
+              <span className="hide-mobile">{profile.email ? 'Synced' : 'Sync'}</span>
             </button>
-          )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <SyncSheet open={syncOpen} onClose={() => setSyncOpen(false)} />
+    </>
   );
 }
