@@ -118,5 +118,5 @@ Since BolEnglish utilizes Vercel Serverless Functions for database API operation
 
 ## 📜 License
 
-This project is licensed under the **GNU General Public License v2.0 (GPL-2.0)**. See the [LICENSE](file:///f:/Language%20Teacher/LICENSE) file for details.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE](file:///f:/Language%20Teacher/LICENSE) file for details.
 
