@@ -36,11 +36,14 @@ export function useSpeech() {
   }, []);
 
   const speak = useCallback(async (text, rate = 0.9, accent = "US") => {
-    if (!ttsSupported || isSpeaking) return;
+    if (!ttsSupported) return;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     setIsSpeaking(true);
     await speakEnglish(text, rate, accent);
     setIsSpeaking(false);
-  }, [ttsSupported, isSpeaking]);
+  }, [ttsSupported]);
 
   const resetSpeech = useCallback(() => {
     setSpeechResult(null);

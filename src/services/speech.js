@@ -1,6 +1,16 @@
 // Speech Service utilizing browser-native Web Speech API (SpeechSynthesis & SpeechRecognition)
 
-// 1. Text-To-Speech (TTS) Wrapper supporting dynamic accents
+let cachedVoices = [];
+
+// Pre-load voices on browser initialization
+if (typeof window !== 'undefined' && window.speechSynthesis) {
+  cachedVoices = window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    cachedVoices = window.speechSynthesis.getVoices();
+  };
+}
+
+// 1. Text-To-Speech (TTS) Wrapper supporting dynamic tri-accents (IN, US, UK)
 export const speakEnglish = (text, rate = 0.9, accent = "US") => {
   return new Promise((resolve) => {
     if (!window.speechSynthesis) {
@@ -9,7 +19,7 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
       return;
     }
 
-    // Cancel any ongoing speech
+    // Immediately cancel any active utterance to switch accent cleanly
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -21,27 +31,51 @@ export const speakEnglish = (text, rate = 0.9, accent = "US") => {
     utterance.lang = targetLang;
     utterance.rate = rate;
 
-    // Try to find a high-quality native English voice matching the accent
-    const voices = window.speechSynthesis.getVoices();
-    
-    let selectedVoice = voices.find(
-      (v) => v.lang.toLowerCase() === targetLang.toLowerCase() && v.name.includes("Google")
-    ) || voices.find(
-      (v) => v.lang.toLowerCase() === targetLang.toLowerCase()
-    );
-
-    // Fallback if the specific accent voice is missing on this OS
-    if (!selectedVoice) {
-      const targetPrefix = targetLang.split("-")[0].toLowerCase();
-      selectedVoice = voices.find(
-        (v) => v.lang.toLowerCase().startsWith(targetPrefix) && v.name.includes("Google")
-      ) || voices.find(
-        (v) => v.lang.toLowerCase().startsWith(targetPrefix)
-      );
+    // Get fresh voices array or fall back to cached list
+    let voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) {
+      voices = cachedVoices;
     }
-    
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
+
+    if (voices && voices.length > 0) {
+      const cleanTarget = targetLang.toLowerCase().replace('_', '-');
+      const regionCode = accent.toLowerCase(); // "in", "uk", "us"
+
+      // 1. Precise language tag match (e.g., en-IN)
+      let selectedVoice = voices.find((v) => {
+        const vl = v.lang.toLowerCase().replace('_', '-');
+        return vl === cleanTarget;
+      });
+
+      // 2. Region-specific keyword match if exact tag is absent
+      if (!selectedVoice && accent === "UK") {
+        selectedVoice = voices.find((v) =>
+          v.lang.toLowerCase().includes("gb") ||
+          v.name.toLowerCase().includes("uk") ||
+          v.name.toLowerCase().includes("united kingdom") ||
+          v.name.toLowerCase().includes("great britain")
+        );
+      } else if (!selectedVoice && accent === "IN") {
+        selectedVoice = voices.find((v) =>
+          v.lang.toLowerCase().includes("in") ||
+          v.name.toLowerCase().includes("india") ||
+          v.name.toLowerCase().includes("hindi")
+        );
+      } else if (!selectedVoice && accent === "US") {
+        selectedVoice = voices.find((v) =>
+          v.lang.toLowerCase().includes("us") ||
+          v.name.toLowerCase().includes("united states")
+        );
+      }
+
+      // 3. Fallback to any English voice
+      if (!selectedVoice) {
+        selectedVoice = voices.find((v) => v.lang.toLowerCase().startsWith("en"));
+      }
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
     }
 
     utterance.onend = () => resolve(true);
@@ -66,7 +100,6 @@ export const getSpeechRecognition = () => {
 };
 
 // 3. Pronunciation matching evaluator
-// Returns an array of word objects with correctness flags
 export const evaluatePronunciation = (spokenText, targetText) => {
   const cleanWord = (word) => word.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").trim();
 
@@ -77,13 +110,9 @@ export const evaluatePronunciation = (spokenText, targetText) => {
   
   const wordsResult = targetWords.map((word) => {
     const cleanedTarget = cleanWord(word);
-    
-    // Find if the target word exists in the spoken words array within a reasonable search window
-    // (This helps account for skipped or added words)
     const isCorrect = spokenWords.includes(cleanedTarget);
     if (isCorrect) {
       correctCount++;
-      // Remove it so it doesn't get matched twice
       const idx = spokenWords.indexOf(cleanedTarget);
       spokenWords.splice(idx, 1);
     }
@@ -97,7 +126,7 @@ export const evaluatePronunciation = (spokenText, targetText) => {
   const score = Math.round((correctCount / targetWords.length) * 100);
 
   return {
-    score, // 0 to 100 percentage
-    words: wordsResult // e.g. [{word: "Hello", isCorrect: true}, ...]
+    score,
+    words: wordsResult
   };
 };

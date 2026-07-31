@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { useSpeech } from '../hooks/useSpeech';
 import { LESSONS } from '../data/curriculum';
-import ProgressBar from '../components/ui/ProgressBar';
+import { useSpeech } from '../hooks/useSpeech';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import ProgressBar from '../components/ui/ProgressBar';
 import QuestionBody from '../components/quiz/QuestionBody';
 import SpeakButton from '../components/ui/SpeakButton';
 
-const hasEnglishText = (text) => text && /[a-zA-Z]/.test(text);
+// Helper to check if string contains English text
+const hasEnglishText = (str) => typeof str === 'string' && /[a-zA-Z]/.test(str);
 
 export default function LessonRoute() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { completeLesson, trackAnswer } = useApp();
+  const { completeLesson, trackAnswer, profile } = useApp();
   const speech = useSpeech();
 
-  const [phase, setPhase] = useState('learning'); // 'learning' | 'grammar' | 'quiz' | 'complete'
+  // Selected pronunciation accent ('IN' | 'US' | 'UK')
+  const [selectedAccent, setSelectedAccent] = useState('US');
+
+  // Phases: 'learning' -> 'grammar' -> 'quiz' -> 'complete'
+  const [phase, setPhase] = useState('learning');
   const [cardIndex, setCardIndex] = useState(0);
   const [quizIndex, setQuizIndex] = useState(0);
-  const [quizScore, setQuizScore] = useState(0);
-  const [selectedAccent, setSelectedAccent] = useState('IN'); // 'IN' | 'US' | 'UK'
 
-  // Quiz question states
+  // Active Quiz State
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
@@ -33,6 +36,16 @@ export default function LessonRoute() {
     ...(LESSONS.intermediate || []),
     ...(LESSONS.advanced || []),
   ].find((l) => l.id === id);
+
+  // Dynamic practice queue (supports AI question additions)
+  const [practiceQueue, setPracticeQueue] = useState([]);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
+  useEffect(() => {
+    if (lesson?.practice) {
+      setPracticeQueue(lesson.practice);
+    }
+  }, [lesson]);
 
   useEffect(() => {
     // Warm up speech synthesis voices once on mount
@@ -45,13 +58,12 @@ export default function LessonRoute() {
   // Handle phase & index changes
   useEffect(() => {
     speech.resetSpeech();
-    // Reset answers for quiz questions
     if (phase === 'quiz') {
       setIsAnswered(false);
       setIsCorrect(false);
-      const quiz = lesson?.practice?.[quizIndex];
+      const quiz = practiceQueue?.[quizIndex];
       if (quiz?.type === 'listening') {
-        const t = setTimeout(() => speech.speak(quiz.audioText, 0.85), 250);
+        const t = setTimeout(() => speech.speak(quiz.audioText, 0.85, selectedAccent), 250);
         return () => clearTimeout(t);
       }
     }
@@ -83,23 +95,49 @@ export default function LessonRoute() {
   };
 
   const handleQuizResolved = (correct) => {
-    if (isAnswered) return;
-    setIsCorrect(correct);
     setIsAnswered(true);
-    if (correct) setQuizScore((s) => s + 1);
-    try {
-      trackAnswer(correct);
-    } catch (e) {
-      console.warn("LessonRoute: Failed to track answer accuracy", e);
-    }
+    setIsCorrect(correct);
+    trackAnswer(correct);
   };
 
   const nextQuiz = () => {
-    if (quizIndex < lesson.practice.length - 1) {
+    if (quizIndex < practiceQueue.length - 1) {
       setQuizIndex((q) => q + 1);
+      setIsAnswered(false);
+      setIsCorrect(false);
     } else {
       completeLesson(lesson.id, lesson.xpReward);
       setPhase('complete');
+    }
+  };
+
+  // AI Question Generator Handler
+  const handleGenerateAIQuestion = async () => {
+    setIsGeneratingAI(true);
+    try {
+      const res = await fetch('/api/generate-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: lesson.titleEnglish,
+          level: profile.level || 'beginner',
+          goal: profile.goal || 'speaking',
+          type: 'mcq',
+        }),
+      });
+      const data = await res.json();
+      if (data && data.question) {
+        const newQueue = [...practiceQueue, data.question];
+        setPracticeQueue(newQueue);
+        setQuizIndex(newQueue.length - 1);
+        setPhase('quiz');
+        setIsAnswered(false);
+        setIsCorrect(false);
+      }
+    } catch (err) {
+      console.error('AI question generation error:', err);
+    } finally {
+      setIsGeneratingAI(false);
     }
   };
 
@@ -180,22 +218,34 @@ export default function LessonRoute() {
               </div>
 
               <div className="flashcard-en">{card.english}</div>
-              <div className="flashcard-pronun">
-                उच्चारण ({selectedAccent}): <strong>{pronun}</strong>
-              </div>
-              <div className="flashcard-hi hindi-text">{card.hindi}</div>
-              {card.useCase && <div className="flashcard-use hindi-text">{card.useCase}</div>}
               
+              {pronun && (
+                <div className="flashcard-pronun">
+                  🗣️ उच्चारण: {pronun}
+                </div>
+              )}
+              
+              <div className="flashcard-hi hindi-text">{card.hindi}</div>
+              {card.usageHindi && (
+                <div className="flashcard-use hindi-text">"{card.usageHindi}"</div>
+              )}
+
+              {/* Speech Pronunciation Feature */}
               {speech.sttSupported && (
                 <div
-                  className="flashcard-speak-badge mt-16"
-                  onClick={() => speech.startListening(card.english)}
-                  style={{
-                    borderColor: speech.speechResult
-                      ? speech.speechResult.score >= 60
-                        ? 'var(--success)'
-                        : 'var(--error)'
-                      : 'var(--border)',
+                  className={`btn ${speech.isListening ? 'btn-danger' : 'btn-secondary'} btn-sm mt-12 btn-auto`}
+                  onClick={() => {
+                    if (speech.isListening) speech.stopListening();
+                    else speech.startListening(card.english);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (speech.isListening) speech.stopListening();
+                      else speech.startListening(card.english);
+                    }
                   }}
                 >
                   <span>🎤</span>
@@ -265,15 +315,15 @@ export default function LessonRoute() {
   };
 
   const renderQuiz = () => {
-    const quiz = lesson.practice?.[quizIndex];
+    const quiz = practiceQueue?.[quizIndex];
     if (!quiz) return null;
-    const pct = ((quizIndex + 1) / lesson.practice.length) * 100;
+    const pct = ((quizIndex + 1) / practiceQueue.length) * 100;
 
     return (
       <div className="deck-view page grow">
         <div className="row-between mb-8">
           <span className="bold text-xs secondary">पार्ट 3: अभ्यास (Practice Quiz)</span>
-          <span className="text-xs muted">{quizIndex + 1} / {lesson.practice.length}</span>
+          <span className="text-xs muted">{quizIndex + 1} / {practiceQueue.length}</span>
         </div>
         <ProgressBar value={pct} className="mb-24" />
 
@@ -314,9 +364,19 @@ export default function LessonRoute() {
               )}
             </div>
 
-            <Button onClick={nextQuiz} className="mt-12">
-              {quizIndex < lesson.practice.length - 1 ? 'अगला प्रश्न (Next) →' : 'पाठ समाप्त करें (Finish Lesson) →'}
-            </Button>
+            <div className="row gap-8 mt-12 flex-wrap">
+              <Button onClick={nextQuiz} className="flex-1">
+                {quizIndex < practiceQueue.length - 1 ? 'अगला प्रश्न (Next) →' : 'पाठ समाप्त करें (Finish Lesson) →'}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleGenerateAIQuestion}
+                disabled={isGeneratingAI}
+                style={{ borderColor: '#c084fc', color: '#c084fc' }}
+              >
+                {isGeneratingAI ? '✨ AI प्रश्न बन रहा है...' : '✨ AI प्रश्न बनाएं'}
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -328,11 +388,11 @@ export default function LessonRoute() {
       <div className="page center grow" style={{ justifyContent: 'center' }}>
         <div style={{ fontSize: 64, marginBottom: 16 }}>🏆</div>
         <h2 className="bold" style={{ fontSize: 24, marginBottom: 8 }}>बधाई हो! (Congratulations!)</h2>
-        <p className="hindi-text text-sm secondary mb-24" style={{ maxWidth: '85%' }}>
+        <p className="hindi-text text-sm secondary mb-20" style={{ maxWidth: '85%' }}>
           आपने सफलतापूर्वक यह पाठ पूरा कर लिया है और नई अंग्रेजी सीखी है।
         </p>
 
-        <Card className="row gap-12 px-32 py-16 mb-32" style={{ width: 'auto' }}>
+        <Card className="row gap-12 px-32 py-16 mb-24" style={{ width: 'auto' }}>
           <span style={{ fontSize: 28 }}>💎</span>
           <div style={{ textAlign: 'left' }}>
             <div className="bold accent" style={{ fontSize: 18 }}>+{lesson.xpReward} XP</div>
@@ -340,37 +400,29 @@ export default function LessonRoute() {
           </div>
         </Card>
 
-        <Button onClick={() => navigate('/dashboard')} className="btn-auto">
-          डैशबोर्ड पर वापस जाएं (Back to Dashboard)
-        </Button>
+        <div className="row gap-10 flex-wrap justify-center">
+          <Button onClick={() => navigate('/dashboard')} className="btn-auto">
+            डैशबोर्ड पर वापस जाएं (Back to Dashboard)
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleGenerateAIQuestion}
+            disabled={isGeneratingAI}
+            style={{ borderColor: '#c084fc', color: '#c084fc' }}
+          >
+            {isGeneratingAI ? '✨ AI नए प्रश्न बना रहा है...' : '✨ AI अतिरिक्त प्रश्न का अभ्यास करें'}
+          </Button>
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="app-container page grow">
-      {/* Mini header */}
-      <div className="row-between mb-16">
-        <button
-          type="button"
-          className="btn-icon-only"
-          onClick={() => navigate('/dashboard')}
-          aria-label="Go back"
-        >
-          ✕
-        </button>
-        <span className="text-sm bold secondary truncate" style={{ maxWidth: '70%' }}>
-          {lesson.titleEnglish}
-        </span>
-        <div style={{ width: 32 }} /> {/* spacer */}
-      </div>
-
-      <div className="grow flex-column">
-        {phase === 'learning' && renderLearning()}
-        {phase === 'grammar' && renderGrammar()}
-        {phase === 'quiz' && renderQuiz()}
-        {phase === 'complete' && renderComplete()}
-      </div>
+    <div className="app-container no-nav page-container">
+      {phase === 'learning' && renderLearning()}
+      {phase === 'grammar' && renderGrammar()}
+      {phase === 'quiz' && renderQuiz()}
+      {phase === 'complete' && renderComplete()}
     </div>
   );
 }
