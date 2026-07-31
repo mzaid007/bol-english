@@ -17,10 +17,22 @@ const GOAL_LABELS = {
 
 export default function ProfileRoute() {
   const navigate = useNavigate();
-  const { profile, progress, disconnectEmail, signOut, resetAll } = useApp();
+  const { profile, progress, updateProfile, disconnectEmail, signOut, resetAll } = useApp();
   
   const [syncOpen, setSyncOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const [editName, setEditName] = useState(profile.name || '');
+  const [editAvatar, setEditAvatar] = useState(profile.avatar || '🧑‍🎓');
+
+  const AVATARS = ['🧑‍🎓', '👩‍💻', '👨‍💼', '🚀', '🌟', '🐼', '🦁', '🦊'];
+
+  const saveEditProfile = (e) => {
+    e.preventDefault();
+    updateProfile({ name: editName.trim() || 'Learner', avatar: editAvatar });
+    setEditOpen(false);
+  };
 
   const total = progress.totalQuestionsAnswered || 0;
   const correct = progress.correctAnswers || 0;
@@ -34,9 +46,21 @@ export default function ProfileRoute() {
           {profile.avatar || '🧑‍🎓'}
         </div>
         <h2 className="bold text-lg">{profile.name || 'शिक्षार्थी'}</h2>
-        <p className="text-xs muted mt-4">
+        <p className="text-xs muted mt-4 mb-12">
           लक्ष्य: {GOAL_LABELS[profile.goal] || 'सेट नहीं है'}
         </p>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm btn-auto"
+          onClick={() => {
+            setEditName(profile.name || 'Learner');
+            setEditAvatar(profile.avatar || '🧑‍🎓');
+            setEditOpen(true);
+          }}
+          style={{ fontSize: 12, padding: '4px 12px' }}
+        >
+          ✏️ प्रोफ़ाइल संपादित करें (Edit Name & Avatar)
+        </button>
       </Card>
 
       {/* Accuracy Stats Card */}
@@ -126,6 +150,53 @@ export default function ProfileRoute() {
         <p className="hindi-text text-sm" style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
           क्या आप वाकई अपनी सारी प्रगति रीसेट करना चाहते हैं? आपकी XP, वर्तमान स्तर और पूरे किए गए पाठ डिलीट हो जाएंगे। यह क्रिया वापस नहीं ली जा सकती।
         </p>
+      </Modal>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        open={editOpen}
+        title="प्रोफ़ाइल संपादित करें (Edit Profile)"
+        onClose={() => setEditOpen(false)}
+      >
+        <form onSubmit={saveEditProfile}>
+          <div className="form-group mb-16">
+            <label className="form-label" htmlFor="editName">आपका नाम (Your Name)</label>
+            <input
+              id="editName"
+              type="text"
+              className="form-input"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="अमित कुमार..."
+              required
+            />
+          </div>
+
+          <div className="form-group mb-20">
+            <span className="form-label">अवतार चुनें (Select Avatar)</span>
+            <div className="avatar-grid">
+              {AVATARS.map((emoji) => (
+                <button
+                  type="button"
+                  key={emoji}
+                  className={`avatar-option ${editAvatar === emoji ? 'selected' : ''}`}
+                  onClick={() => setEditAvatar(emoji)}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="row gap-10">
+            <Button variant="secondary" onClick={() => setEditOpen(false)}>
+              रद्द करें (Cancel)
+            </Button>
+            <Button type="submit">
+              सेव करें (Save Profile)
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
