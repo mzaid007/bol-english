@@ -29,6 +29,7 @@ export default function QuestionBody({ question, speech, onResolved, accent = "U
           options={question.options}
           correctAnswer={question.correctAnswer}
           onResolved={onResolved}
+          accent={accent}
         />
       );
 

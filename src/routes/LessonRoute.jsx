@@ -325,7 +325,35 @@ export default function LessonRoute() {
           <span className="bold text-xs secondary">पार्ट 3: अभ्यास (Practice Quiz)</span>
           <span className="text-xs muted">{quizIndex + 1} / {practiceQueue.length}</span>
         </div>
-        <ProgressBar value={pct} className="mb-24" />
+        <ProgressBar value={pct} className="mb-16" />
+
+        {/* Tri-Accent Selector Bar */}
+        <div className="row gap-8 mb-16 justify-center" style={{ background: 'var(--surface-2)', padding: '8px 14px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--glass-border)' }}>
+          <span className="text-xs muted bold" style={{ fontSize: 11 }}>उच्चारण (Accent):</span>
+          {['IN', 'US', 'UK'].map((acc) => (
+            <button
+              key={acc}
+              type="button"
+              onClick={() => setSelectedAccent(acc)}
+              style={{
+                padding: '4px 12px',
+                fontSize: 11.5,
+                borderRadius: 'var(--radius-pill)',
+                background: selectedAccent === acc ? 'var(--accent-gradient)' : 'var(--surface-3)',
+                color: selectedAccent === acc ? '#ffffff' : 'var(--text-secondary)',
+                border: selectedAccent === acc ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid var(--glass-border)',
+                cursor: 'pointer',
+                fontWeight: 600,
+                boxShadow: selectedAccent === acc ? '0 0 16px rgba(168, 85, 247, 0.4)' : 'none',
+                transition: 'all var(--dur-fast) var(--ease)'
+              }}
+            >
+              {acc === 'IN' && '🇮🇳 India'}
+              {acc === 'US' && '🇺🇸 US'}
+              {acc === 'UK' && '🇬🇧 UK'}
+            </button>
+          ))}
+        </div>
 
         <div className="question-container mb-16">
           <span className="question-tag block text-xs bold uppercase secondary mb-6">

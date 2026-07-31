@@ -13,7 +13,7 @@ const isEnglish = (text) => /[a-zA-Z]/.test(text);
  *  - disabled: boolean
  *  - reveal: boolean                             // force reveal (used on re-render after answer)
  */
-export default function McqQuestion({ options = [], correctAnswer, onResolved, disabled = false }) {
+export default function McqQuestion({ options = [], correctAnswer, onResolved, disabled = false, accent = "US" }) {
   const [selected, setSelected] = useState(null);
   const answered = selected !== null;
 
@@ -43,7 +43,7 @@ export default function McqQuestion({ options = [], correctAnswer, onResolved, d
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flexGrow: 1 }}>
             {option}
-            {isEnglish(option) && <SpeakButton text={option} />}
+            {isEnglish(option) && <SpeakButton text={option} accent={accent} />}
           </span>
           {answered && option === correctAnswer && <span className="check">✓</span>}
           {answered && option === selected && option !== correctAnswer && <span className="check">✗</span>}
