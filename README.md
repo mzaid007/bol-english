@@ -113,3 +113,10 @@ Since BolEnglish utilizes Vercel Serverless Functions for database API operation
 - **Speaking (Voice Recognition)**:
   - **Android/Chrome/Edge/Desktop**: Highly supported and works instantly.
   - **iOS/Safari**: Requires HTTPS (default on Vercel) and user interaction to prompt mic permissions. A fallback "Skip" button is provided for non-supported browsers.
+
+---
+
+## 📜 License
+
+This project is licensed under the **GNU General Public License v2.0 (GPL-2.0)**. See the [LICENSE](file:///f:/Language%20Teacher/LICENSE) file for details.
+
